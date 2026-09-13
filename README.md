@@ -1,40 +1,29 @@
 # Contract Comparison Advisor
 
 기존 보험계약을 신규 상품으로 전환할 때 놓치기 쉬운 조건 변화(보장·지급조건·갱신·환급금)를
-AI가 근거와 함께 빠짐없이 찾아내고, AI의 판단 범위(Extract/Compare/Flag/Unknown/Evidence)와
-사람의 판단 범위(Judge/Explain/Confirm/Record)를 분리해서 검증하는 프로젝트입니다.
+AI가 근거와 함께 찾아내되, AI(Extract/Compare/Flag/Unknown/Evidence)와 사람(Judge/Explain/
+Confirm/Record)의 판단 범위를 분리해서 검증하는 프로젝트입니다.
 
-핵심 질문은 "AI가 계약을 잘 비교하는가"가 아니라 **"AI의 출력을 어떻게 검증하고, 실패를
-데이터로 남기고, 사람이 개입할 수 있게 만드는가"**입니다.
+질문은 "AI가 계약을 잘 비교하는가"가 아니라 **"AI의 출력을 어떻게 검증하고, 실패를 사람이
+개입 가능한 데이터로 남기는가"**입니다. 배경(금융위 불완전판매 지적)은
+[`C6_문제정의_최종.md`](C6_문제정의_최종.md) 참고.
 
-## 배경
+## 무엇을 했는가
 
-금융위원회 2025-01-22 공식 발표(원문 확인)는 GA(법인보험대리점)의 "기존-신규계약 중요사항
-비교 미고지"를 반복되는 불완전판매 문제로 지목했습니다. 이 프로젝트는 그 문제의 한 조각을
-AI로 보완할 수 있는지 실험합니다. 자세한 배경과 근거는 [`C6_문제정의_최종.md`](C6_문제정의_최종.md)
-참고.
-
-## 무엇을 실제로 했는가
-
-1. 15개 테스트 케이스(정상 + 의도적 실패 유도 케이스)를 설계하고 정답(Ground Truth)까지 작성
-2. 시스템 프롬프트 + JSON 출력 스키마 + 자동 검증 규칙(Recall/Precision/Evidence/Unknown/
-   Conflict/Boundary Violation)을 확정
-3. 그중 7개를 실제 LLM(gpt-4o-mini)으로 돌리고, 같은 7개를 스키마 없는 naive 프롬프트로도
-   돌려서 비교
-4. 자체 제작한 평가기(`src/evaluate.py`)를 실행하며 평가기 자체의 버그 7건을 발견·수정
-5. AI가 실제로 놓친 사례(문서 간 충돌) 하나를 사람이 직접 검토·수정하는 Human-in-the-loop을
-   시연
+테스트 케이스 15개(GT 포함) 설계 → 그중 7개를 구조화 파이프라인(프롬프트+스키마+검증 규칙)과
+naive 프롬프트 양쪽으로 실제 실행·비교 → 자체 평가기(`src/evaluate.py`)로 채점하며 평가기
+버그 7건 발견·수정 → 놓친 사례 1건을 사람이 직접 검토·수정(Human-in-the-loop 시연).
 
 ## 핵심 발견
 
 Naive와 Structured의 단순 "변경사항 발견" 능력 차이는 크지 않았습니다. 차이는 **근거 명시,
-출처 충돌 보존, 판단 경계 준수**에서 뚜렷했습니다. 그리고 가장 중요한 발견: Structured도
-conflict를 종종 놓쳤지만, **그 실패를 평가기가 자동으로 감지해 Human Review로 넘길 수 있었던
-반면, naive의 실패는 사람이 원문을 전부 대조해야만 드러났습니다.**
+출처 충돌 보존, 판단 경계 준수**에서 뚜렷했습니다. 더 중요한 발견은, Structured도 conflict를
+종종 놓쳤지만 **그 실패를 평가기가 자동으로 감지해 Human Review로 넘길 수 있었던 반면, naive의
+실패는 사람이 원문을 전부 대조해야만 드러났다**는 것입니다.
 
-상세 비교표와 근거는 [`SUBMISSION.md`](SUBMISSION.md), 평가기 개발 중 발견한 버그와 한계는
-[`results/evaluator_validation_log.md`](results/evaluator_validation_log.md)에 전부 기록되어
-있습니다 — 실패와 한계를 숨기지 않는 것이 이 프로젝트의 원칙입니다.
+상세 비교표는 [`SUBMISSION.md`](SUBMISSION.md), 평가기 버그·한계 전체 기록은
+[`results/evaluator_validation_log.md`](results/evaluator_validation_log.md) 참고 — 실패와
+한계를 숨기지 않는 것이 이 프로젝트의 원칙입니다.
 
 ## 실행 방법
 
