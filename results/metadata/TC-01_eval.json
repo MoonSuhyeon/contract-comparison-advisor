@@ -1,0 +1,18 @@
+{
+  "case_id": "TC-01",
+  "recall_hits": 3,
+  "recall_total": 4,
+  "precision_violations": 0,
+  "precision_total": 5,
+  "evidence_ungrounded": 0,
+  "evidence_total": 5,
+  "findings": [
+    {
+      "rule": "B4",
+      "severity": "AUTO-FAIL",
+      "axis": "recall",
+      "message": "GT상 유의미한 변화인데 unchanged_items로 잘못 배치(Recall 위반)",
+      "item_ref": "coverage_items.cerebro_cardiac_diagnosis"
+    }
+  ]
+}

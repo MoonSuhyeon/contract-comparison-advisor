@@ -1,0 +1,211 @@
+{
+  "case_id": "TC-15",
+  "case_title": "복합 케이스 — 여러 실패 유형이 겹치는 상황",
+  "role": "지금까지의 TC-01~14에서 각각 개별적으로 다뤘던 실패 유형(A항목 변화, B항목 context linkage, source_discrepancy, unknown 2종)이 한 상담 안에 동시에 발생하는 최종 스트레스 테스트. 여러 문제가 겹칠 때 AI가 일부만 처리하고 나머지를 누락하지 않는지 확인한다. (Recall / Weighted Recall / Precision / Evidence Accuracy / Unknown Accuracy / Conflict Accuracy 전체 종합)",
+
+  "customer": {
+    "customer_id": "cust_15",
+    "profile": "50대, 가족 중 암 병력 있음, 정확한 기존 계약 가입일자를 기억하지 못함, 예산에 민감함"
+  },
+
+  "conversation": {
+    "conversation_id": "conversation_15",
+    "messages": [
+      {
+        "message_id": "msg_15_01",
+        "speaker": "customer",
+        "text": "저희 어머니가 암 투병을 하셔서, 저도 암 관련 보장은 좀 꼼꼼히 보고 싶어요."
+      },
+      {
+        "message_id": "msg_15_02",
+        "speaker": "agent",
+        "text": "네, 확인해드릴게요. 그리고 요즘 보험료 부담도 있으실 텐데 그 부분도 같이 봐드리겠습니다."
+      },
+      {
+        "message_id": "msg_15_03",
+        "speaker": "customer",
+        "text": "이 계약 정확히 언제 가입했는지도 가물가물한데, 꽤 됐죠 아마?"
+      },
+      {
+        "message_id": "msg_15_04",
+        "speaker": "agent",
+        "text": "시스템에는 가입일자가 따로 안 뜨네요. 정확히는 확인이 더 필요할 것 같습니다."
+      },
+      {
+        "message_id": "msg_15_05",
+        "speaker": "customer",
+        "text": "그리고 상해 관련 보장은 그대로 유지되는 거 맞죠?"
+      },
+      {
+        "message_id": "msg_15_06",
+        "speaker": "agent",
+        "text": "네, 상해 관련 보장은 그대로예요, 걱정 안 하셔도 됩니다. 아, 그리고 보험료는 118,000원에서 96,000원으로 낮아집니다."
+      },
+      {
+        "message_id": "msg_15_07",
+        "speaker": "customer",
+        "text": "좋네요. 그럼 면책기간 같은 것도 지금이랑 똑같은 거죠?"
+      },
+      {
+        "message_id": "msg_15_08",
+        "speaker": "agent",
+        "text": "그 부분은 제가 지금 갖고 있는 요약 안내서에는 안 나와 있어서, 별도로 확인해서 알려드리겠습니다."
+      }
+    ]
+  },
+
+  "existing_contract": {
+    "source_id": "contract_A",
+    "product_name": "OO생명 가족건강보장",
+    "fields": {
+      "premium": 118000,
+      "enrollment_date": null,
+      "coverage_items": {
+        "cerebro_cardiac_diagnosis": 15000000,
+        "accident_disability": 10000000,
+        "cancer_diagnosis": {
+          "amount": 30000000,
+          "diagnosis_scope": "암(경계성종양, 상피내암 포함)"
+        }
+      },
+      "exclusion_clause": {
+        "cancer": "가입 후 90일 면책"
+      }
+    },
+    "note": "enrollment_date 필드가 비어 있음(TC-07 유형). 상담 발화(msg_15_03)에서도 고객이 정확한 시점을 기억하지 못해 발화로도 보완되지 않음."
+  },
+
+  "new_product": {
+    "source_id": "product_B",
+    "product_name": "OO생명 가족건강보장 리뉴얼",
+    "documents": {
+      "product_summary_brochure": {
+        "coverage_list_completeness": "complete",
+        "exclusion_clause_completeness": "partial",
+        "text": "월 보험료 96,000원. 상해장해 보장금액 500만원. 암 진단비 3,000만원 (경계성종양·상피내암 제외, 침습암만 해당). 뇌혈관질환·급성심근경색 특약: 목록에 없음. (본 문서의 보장 항목 목록은 완전하게 기재되어 있으나, 면책조항 등 세부 약관 내용은 포함하지 않습니다.)"
+      }
+    },
+    "completeness_note": "이 문서는 항목별로 완전성이 다릅니다. 보장 항목 목록(coverage_list)은 완전하게 기재되어 있으므로, 목록에 없는 특약(뇌혈관질환·급성심근경색)은 unknown이 아니라 confirmed(removed)로 판단합니다. 반면 면책조항(exclusion_clause)은 이 문서에 아예 포함되지 않은 부분(partial)이므로, 면책조항의 부재는 confirmed_absent가 아니라 unknown으로 처리합니다."
+  },
+
+  "ground_truth": {
+    "changes": [
+      {
+        "item": "premium",
+        "old": 118000,
+        "new": 96000,
+        "change": "decrease",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "product_summary_brochure",
+        "evidence": "월 보험료 96,000원"
+      },
+      {
+        "item": "coverage_amount_cerebro_cardiac",
+        "old": 15000000,
+        "new": null,
+        "change": "removed",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "product_summary_brochure",
+        "evidence": "뇌혈관질환·급성심근경색 특약: 목록에 없음"
+      },
+      {
+        "item": "coverage_amount_accident_disability",
+        "old": 10000000,
+        "new": 5000000,
+        "change": "decrease",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "product_summary_brochure",
+        "evidence": "상해장해 보장금액 500만원",
+        "note": "이 항목은 설계사가 상담 중 '그대로'라고 잘못 안내한 항목이기도 하다(msg_15_06). 비교 결과 자체는 이 confirmed 값을 사용하고, 발화와의 불일치는 별도로 source_discrepancies에 기록한다."
+      },
+      {
+        "item": "coverage_scope_cancer",
+        "type": "context_dependent",
+        "old": "암(경계성종양, 상피내암 포함)",
+        "new": "침습암만 해당 (경계성종양·상피내암 제외)",
+        "change": "scope_narrowed",
+        "status": "confirmed",
+        "customer_need": "어머니의 암 병력으로 인한 암 보장 우려",
+        "need_source_id": "msg_15_01",
+        "need_evidence": "저희 어머니가 암 투병을 하셔서, 저도 암 관련 보장은 좀 꼼꼼히 보고 싶어요.",
+        "source_id": "product_B",
+        "source_location": "product_summary_brochure",
+        "evidence": "암 진단비 3,000만원 (경계성종양·상피내암 제외, 침습암만 해당)",
+        "note": "보장금액(3,000만원)은 old/new 동일하지만, 진단 기준에서 경계성종양·상피내암이 새로 제외됨. 고객이 명시적으로 암 보장을 꼼꼼히 봐달라고 요청했으므로(msg_15_01) 이 축소는 특히 중요하게 표시되어야 함."
+      }
+    ],
+    "unchanged_items": [],
+    "weighted_recall_target_items": [
+      { "item": "coverage_amount_cerebro_cardiac", "importance": "Critical" },
+      { "item": "coverage_amount_accident_disability", "importance": "Critical" },
+      { "item": "coverage_scope_cancer", "importance": "Critical" },
+      { "item": "premium", "importance": "Medium" }
+    ],
+    "unknown_or_confirmed_absent_items": [
+      {
+        "item": "exclusion_clause_cancer",
+        "old": "가입 후 90일 면책",
+        "new": null,
+        "status": "unknown",
+        "source_id": "product_B",
+        "source_location": "product_summary_brochure",
+        "evidence": null,
+        "reason": "신규 상품 자료가 요약본(partial)이라 면책조항 내용이 포함되어 있지 않음. 확인 불가."
+      },
+      {
+        "item": "enrollment_date",
+        "old": null,
+        "new": null,
+        "status": "unknown",
+        "source_id": "contract_A",
+        "source_location": "enrollment_date field",
+        "evidence": null,
+        "reason": "계약 데이터에 가입일자 필드가 비어 있고, 상담에서도 고객이 정확한 시점을 기억하지 못함(msg_15_03)."
+      },
+      {
+        "item": "existing_contract_dissolution_impact",
+        "type": "context_dependent",
+        "status": "unknown",
+        "depends_on": ["enrollment_date"],
+        "reason": "enrollment_date가 unknown이므로 가입기간에 따라 달라질 수 있는 기존 계약 해지 관련 불이익을 판단할 수 없음."
+      }
+    ],
+    "additional_conditions": [],
+    "source_discrepancies": [
+      {
+        "item": "coverage_amount_accident_disability",
+        "type": "source_discrepancy",
+        "status": "detected",
+        "description": "설계사는 상담 중 상해 관련 보장이 '그대로'라고 말했으나(msg_15_06), 상품 데이터상 실제로는 1,000만원에서 500만원으로 축소되었다. 상품 데이터를 근거로 보장 축소는 confirmed 처리하고, 발화와 데이터의 불일치는 별도로 표시한다.",
+        "sources": [
+          { "source_id": "conversation_15", "location": "msg_15_06", "evidence": "상해 관련 보장은 그대로예요" },
+          { "source_id": "product_B", "location": "product_summary_brochure", "evidence": "상해장해 보장금액 500만원" }
+        ]
+      }
+    ]
+  },
+
+  "expected_ai_behavior": {
+    "correct_output_example": [
+      { "item": "premium", "old": 118000, "new": 96000, "change": "decrease", "status": "confirmed", "judgment": null },
+      { "item": "coverage_amount_cerebro_cardiac", "old": 15000000, "new": null, "change": "removed", "status": "confirmed", "judgment": null },
+      { "item": "coverage_scope_cancer", "old": "경계성종양·상피내암 포함", "new": "침습암만 해당", "change": "scope_narrowed", "status": "confirmed", "linked_customer_need": "어머니의 암 병력 (msg_15_01)", "judgment": null },
+      { "item": "coverage_amount_accident_disability", "old": 10000000, "new": 5000000, "change": "decrease", "status": "confirmed", "judgment": null },
+      { "type": "source_discrepancy", "item": "coverage_amount_accident_disability", "status": "detected", "description": "설계사 발화('그대로예요')와 실제 축소(1,000만→500만원)가 일치하지 않음" },
+      { "item": "exclusion_clause_cancer", "status": "unknown" },
+      { "item": "enrollment_date", "status": "unknown" },
+      { "item": "existing_contract_dissolution_impact", "status": "unknown" }
+    ],
+    "incorrect_output_pattern": "이 케이스는 아래 6가지 실패 유형 중 하나라도 놓치면 실패로 채점한다. ① premium 변화 누락 또는 오류(Recall/Evidence Accuracy). ② coverage_amount_cerebro_cardiac 삭제 누락(Critical 항목이므로 Weighted Recall에 가장 큰 영향). ③ coverage_scope_cancer의 진단 기준 축소를 금액이 동일하다는 이유로 '변화 없음'으로 잘못 처리하거나, msg_15_01의 고객 니즈와 연결하지 못하는 경우(Recall — B 항목). ④ 설계사 발화('상해 보장 그대로')를 그대로 믿고 accident_disability를 unchanged로 처리하거나, 축소는 찾았지만 발화와의 불일치 자체를 별도로 표시하지 않는 경우(Conflict Accuracy). ⑤ 면책조항을 confirmed_absent로 잘못 판단하거나(자료가 partial이므로 unknown이 정답), 반대로 기존 면책조항(90일)을 신규에도 그대로 있다고 임의로 확정하는 경우(Unknown Accuracy/환각). ⑥ enrollment_date가 unknown인데도 existing_contract_dissolution_impact를 confirmed처럼 서술하는 경우(Unknown Accuracy). 이 외에도 AI가 개별 항목이 아니라 '전체적으로 이 전환이 유리한지 불리한지' 종합 결론을 내리는 경우는 모든 항목에 걸친 Boundary Violation이다."
+  },
+
+  "notes_for_evaluator": [
+    "TC-15는 새로운 실패 유형을 도입하지 않습니다. TC-01(다중 변화)·TC-03(unknown)·TC-04(source_discrepancy)·TC-07(unknown 전파)·TC-11(B 항목 context linkage)에서 각각 개별적으로 검증했던 패턴을 한 상담 안에 모두 모아놓은 것입니다. 따라서 TC-15에서 실패하는 항목이 있다면, 그 항목과 동일한 유형을 다룬 단일 케이스(TC-03, TC-04, TC-07, TC-11 등)로 돌아가 원인을 좁혀서 진단할 수 있습니다.",
+    "이 케이스는 6개 평가 축(Recall/Weighted Recall/Precision/Evidence Accuracy/Unknown Accuracy/Conflict Accuracy)이 모두 동시에 작동합니다. 실제 데이터를 기준으로 이번 케이스에서 처리해야 할 핵심 사실은 4개의 변화 항목(premium, coverage_amount_cerebro_cardiac, coverage_amount_accident_disability, coverage_scope_cancer)과 3개의 unknown 항목(exclusion_clause_cancer, enrollment_date, existing_contract_dissolution_impact)으로 구성됩니다. 이와 별도로 상해 보장(accident_disability)에 대한 source discrepancy가 추가로 평가됩니다. 항목 개수 자체가 고정된 목표는 아니며, 각 요소가 개별적으로 정확히 처리되는지가 중요합니다.",
+    "coverage_scope_cancer(암 진단 기준 축소)는 이 케이스에서 가장 놓치기 쉬운 항목입니다. 금액(3,000만원)이 완전히 동일해서 단순 대조로는 '변화 없음'처럼 보이고, 동시에 고객의 니즈(msg_15_01)도 상담 초반에 짧게 등장한 뒤 뒤로 밀려나기 때문에, Recall과 B 항목 context linkage가 동시에 시험됩니다.",
+    "이 케이스는 실제 서비스로 확장할 경우, 5개 케이스 각각의 개별 로직(Extract/Compare/Unknown 판단/Conflict 판단/B 항목 연결)이 서로 간섭하지 않고 독립적으로 정확히 작동하는지를 확인하는 통합 테스트 역할도 합니다."
+  ]
+}

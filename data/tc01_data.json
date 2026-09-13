@@ -1,0 +1,168 @@
+{
+  "case_id": "TC-01",
+  "case_title": "기본 다중 변화 케이스 (baseline)",
+  "role": "정상 데이터 + 다중 변화 → 기본 Recall. 출처 간 충돌이나 발화-데이터 불일치 없이, 여러 변화가 동시에 존재할 때 AI가 중요한 변화를 빠짐없이 찾아내는지만 확인한다.",
+
+  "customer": {
+    "customer_id": "cust_01",
+    "profile": "40대, 자녀 2명, 기존 계약 10년 유지"
+  },
+
+  "conversation": {
+    "conversation_id": "conversation_01",
+    "messages": [
+      {
+        "message_id": "msg_01_01",
+        "speaker": "customer",
+        "text": "안녕하세요, 예전에 가입한 보험이 있는데 요즘 보험료가 너무 부담돼서요. 좀 줄일 수 있는 방법 없을까요?"
+      },
+      {
+        "message_id": "msg_01_02",
+        "speaker": "agent",
+        "text": "네 고객님, 확인해보겠습니다. 지금 OO생명 종합보장 상품 10년째 유지하고 계시네요. 월 150,000원 내고 계시고요."
+      },
+      {
+        "message_id": "msg_01_03",
+        "speaker": "customer",
+        "text": "네 맞아요. 이게 좀 오래됐는데, 이거 계속 갖고 있어야 하나 싶기도 하고."
+      },
+      {
+        "message_id": "msg_01_04",
+        "speaker": "agent",
+        "text": "요즘 나온 △△화재 건강파트너라는 상품이 있는데, 이걸로 옮기시면 월 110,000원으로 조정됩니다."
+      },
+      {
+        "message_id": "msg_01_05",
+        "speaker": "customer",
+        "text": "오 그럼 좀 낮아지는 거네요. 근데 보장 내용은 똑같은 거예요?"
+      },
+      {
+        "message_id": "msg_01_06",
+        "speaker": "agent",
+        "text": "잠시만요, 자료 다시 확인해보겠습니다. ...음, 제가 갱신주기를 잘못 봤네요. 다시 볼게요."
+      },
+      {
+        "message_id": "msg_01_07",
+        "speaker": "agent",
+        "text": "네 확인했습니다. 암 진단비는 동일하게 3,000만원으로 유지되고요, 나머지 조건은 상품안내서 기준으로 정리해서 다시 말씀드릴게요."
+      },
+      {
+        "message_id": "msg_01_08",
+        "speaker": "customer",
+        "text": "음... 그래도 이게 뭐가 더 좋은 건지 잘 모르겠어요. 그냥 뭐가 바뀌는지 정확하게 정리해서 알려주실 수 있어요?"
+      },
+      {
+        "message_id": "msg_01_09",
+        "speaker": "agent",
+        "text": "네, 정리해서 다시 안내드리겠습니다."
+      }
+    ]
+  },
+
+  "existing_contract": {
+    "source_id": "contract_A",
+    "product_name": "OO생명 종합보장",
+    "fields": {
+      "premium": 150000,
+      "coverage_items": {
+        "cancer_diagnosis": 30000000,
+        "cerebro_cardiac_diagnosis": 15000000
+      },
+      "renewal_period": "10년",
+      "surrender_value_at_10y": "62%"
+    }
+  },
+
+  "new_product": {
+    "source_id": "product_B",
+    "product_name": "△△화재 건강파트너",
+    "documents": {
+      "product_brochure_p3": {
+        "text": "월 보험료 110,000원"
+      },
+      "coverage_list": {
+        "text": "암 진단비 3,000만원 (최초 1회 지급). 뇌혈관질환·급성심근경색 진단비 특약: 목록에 없음."
+      },
+      "renewal_clause": {
+        "text": "갱신주기 5년."
+      },
+      "surrender_value_table": {
+        "text": "10년납 기준 해지환급률 31%."
+      }
+    }
+  },
+
+  "ground_truth": {
+    "changes": [
+      {
+        "item": "premium",
+        "old": 150000,
+        "new": 110000,
+        "change": "decrease",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "product_brochure_p3",
+        "evidence": "월 보험료 110,000원"
+      },
+      {
+        "item": "coverage_amount_cerebro_cardiac",
+        "old": 15000000,
+        "new": null,
+        "change": "removed",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "coverage_list",
+        "evidence": "뇌혈관질환·급성심근경색 진단비 특약: 목록에 없음"
+      },
+      {
+        "item": "renewal_period",
+        "old": "10년",
+        "new": "5년",
+        "change": "shortened",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "renewal_clause",
+        "evidence": "갱신주기 5년"
+      },
+      {
+        "item": "surrender_value",
+        "old": "62%",
+        "new": "31%",
+        "change": "decrease",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "surrender_value_table",
+        "evidence": "10년납 기준 해지환급률 31%"
+      }
+    ],
+    "unchanged_items": [
+      {
+        "item": "coverage_amount_cancer",
+        "old": 30000000,
+        "new": 30000000,
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "coverage_list",
+        "evidence": "암 진단비 3,000만원 (최초 1회 지급)"
+      }
+    ],
+    "weighted_recall_target_items": [
+      { "item": "coverage_amount_cerebro_cardiac", "importance": "Critical" },
+      { "item": "renewal_period", "importance": "High" },
+      { "item": "surrender_value", "importance": "High" },
+      { "item": "premium", "importance": "Medium" }
+    ],
+    "unknown_or_confirmed_absent_items": [],
+    "additional_conditions": []
+  },
+
+  "notes_for_evaluator": [
+    "TC-01은 순수 baseline입니다. 출처 간 충돌(conflict)이나 상담 발화-계약 데이터 불일치(source_discrepancy)를 의도적으로 배제했습니다. 기존 계약 보험료는 상담 발화(msg_01_02)와 계약 데이터(contract_A)가 150,000원으로 정확히 일치합니다.",
+    "핵심 평가 대상 4개 변화(changes 배열의 분모): premium(감소), coverage_amount_cerebro_cardiac(삭제, Critical), renewal_period(단축), surrender_value(감소). 이 4개를 AI가 빠짐없이 찾아내는지가 Recall/Weighted Recall의 평가 대상입니다.",
+    "coverage_amount_cancer는 실제로는 변화가 아니므로 changes가 아닌 unchanged_items로 분리했습니다. 이 항목은 Recall의 분모에 포함되지 않고, 대신 AI가 변화가 없는 항목을 불필요하게 '변화'로 잘못 검출하는지(과검출) 확인하는 Precision 체크포인트로 사용합니다.",
+    "구어체·정제되지 않은 상담이라는 특성은 msg_01_06에서 설계사가 잠시 헷갈리는 톤으로 유지하되, 숫자 자체를 틀리게 말하지는 않도록 해서 source discrepancy 변수가 섞이지 않게 했습니다.",
+    "weighted_recall_target_items의 importance(Critical/High/Medium)는 TC-01에서 새로 정한 기준이 아니라, Step 7 설계 문서(3번 섹션)에서 이미 고정한 항목별 중요도 분류를 그대로 참조한 것입니다. 가중치 자체(Critical=3, High=2, Medium=1)와 계산식도 Step 7에서 고정되어 있으며, TC-01~15는 그 규칙에 따라 각 항목의 중요도만 지정합니다.",
+    "additional_condition(예: 갱신 시 보험료 별도 산정)은 TC-12의 핵심 요소이므로 TC-01에서는 포함하지 않았습니다.",
+    "데이터 생성 원칙: 신규 상품의 coverage_list는 해당 상품의 보장 항목을 완전하게 열거한 자료로 가정합니다. 따라서 coverage_list에 뇌혈관질환·급성심근경색 특약이 없다는 것은 '확인이 안 된 것'이 아니라 '해당 특약이 실제로 없다는 것이 확정된 것'이며, 그래서 이 항목의 change를 'removed'로, status를 'confirmed'로 판단할 수 있습니다. 이 완전성 전제가 없다면 '목록에 없다고 실제로 없는 것은 아닐 수 있다'는 문제가 생기므로, coverage_list가 완전한 자료라는 점을 이 데이터셋의 고정 전제로 명시합니다. 이 전제는 TC-03(정보 자체가 없는 진짜 unknown)이나 TC-10(confirmed_absent 판단)의 기준과도 일관되게 유지됩니다."
+  ]
+}

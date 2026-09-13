@@ -1,0 +1,259 @@
+{
+  "_meta": "N=7 실행 케이스에 대해 output_schema.json을 실제로 적용했을 때 기대되는 AI Output 예시. GT를 그대로 베낀 게 아니라 '공통 스키마로 표현하면 이런 모양'이라는 참조용이며, 이 예시 자체도 validation_rules.md의 AUTO-FAIL 규칙을 통과하도록 작성했다.",
+
+  "TC-01": {
+    "customer_needs": [
+      {
+        "need_id": "need_01_01",
+        "need_summary": "보험료 부담을 줄이고 싶음",
+        "source_message_ids": ["msg_01_01"],
+        "evidence": ["요즘 보험료가 너무 부담돼서요. 좀 줄일 수 있는 방법 없을까요?"]
+      }
+    ],
+    "changes": [
+      { "item": "premium", "old": 150000, "new": 110000, "delta_type": "decrease", "status": "confirmed", "evidence": "월 보험료 110,000원", "source_id": "product_B", "source_location": "product_brochure_p3", "linked_need_id": "need_01_01", "note": null, "judgment": null },
+      { "item": "coverage_amount_cerebro_cardiac", "old": 15000000, "new": null, "delta_type": "removed", "status": "confirmed", "evidence": "뇌혈관질환·급성심근경색 진단비 특약: 목록에 없음", "source_id": "product_B", "source_location": "coverage_list", "linked_need_id": null, "note": null, "judgment": null },
+      { "item": "renewal_period", "old": "10년", "new": "5년", "delta_type": "shortened", "status": "confirmed", "evidence": "갱신주기 5년", "source_id": "product_B", "source_location": "renewal_clause", "linked_need_id": null, "note": null, "judgment": null },
+      { "item": "surrender_value", "old": "62%", "new": "31%", "delta_type": "decrease", "status": "confirmed", "evidence": "10년납 기준 해지환급률 31%", "source_id": "product_B", "source_location": "surrender_value_table", "linked_need_id": null, "note": null, "judgment": null }
+    ],
+    "unchanged_items": [
+      { "item": "coverage_amount_cancer", "old": 30000000, "new": 30000000, "delta_type": "unchanged", "status": "confirmed", "evidence": "암 진단비 3,000만원 (최초 1회 지급)", "source_id": "product_B", "source_location": "coverage_list", "linked_need_id": null, "note": null, "judgment": null }
+    ],
+    "unknowns": [],
+    "conflicts": [],
+    "additional_conditions": [],
+    "judgment": null
+  },
+
+  "TC-03": {
+    "customer_needs": [
+      {
+        "need_id": "need_03_01",
+        "need_summary": "면책조건이 기존과 동일한지 확인하고 싶음",
+        "source_message_ids": ["msg_03_01", "msg_03_03"],
+        "evidence": [
+          "제가 예전에 가입할 때 자살이나 특정 질병 관련해서 면책기간 있다고 들었던 거 같은데, 이번에 새로 나온 상품도 그런 게 있나요?",
+          "네, 그거요. 새 상품도 똑같은가요?"
+        ]
+      }
+    ],
+    "changes": [
+      { "item": "premium", "old": 95000, "new": 88000, "delta_type": "decrease", "status": "confirmed", "evidence": "월 보험료 88,000원", "source_id": "product_B", "source_location": "product_brochure_p1", "linked_need_id": null, "note": null, "judgment": null }
+    ],
+    "unchanged_items": [],
+    "unknowns": [
+      { "item": "exclusion_clause_suicide", "old": "가입 후 1년 이내 면책", "new": null, "status": "unknown", "evidence": null, "source_id": "product_B", "source_location": "product_brochure_p1", "reason": "신규 상품 안내서가 요약본(partial)이라 면책조항 내용이 포함되어 있지 않음", "linked_need_id": "need_03_01", "depends_on": null, "judgment": null },
+      { "item": "exclusion_clause_specific_disease", "old": "90일 면책기간", "new": null, "status": "unknown", "evidence": null, "source_id": "product_B", "source_location": "product_brochure_p1", "reason": "신규 상품 안내서가 요약본(partial)이라 면책조항 내용이 포함되어 있지 않음", "linked_need_id": "need_03_01", "depends_on": null, "judgment": null }
+    ],
+    "conflicts": [],
+    "additional_conditions": [],
+    "judgment": null
+  },
+
+  "TC-04": {
+    "customer_needs": [
+      {
+        "need_id": "need_04_01",
+        "need_summary": "보험료는 낮추되 암 보장은 그대로 유지되길 원함",
+        "source_message_ids": ["msg_04_01"],
+        "evidence": ["보험료만 좀 낮추고 싶은 거지, 암 보장 같은 건 그대로 유지되면 좋겠는데요."]
+      }
+    ],
+    "changes": [
+      { "item": "premium", "old": 130000, "new": 115000, "delta_type": "decrease", "status": "confirmed", "evidence": "월 보험료 115,000원", "source_id": "product_B", "source_location": "product_brochure_p2", "linked_need_id": null, "note": null, "judgment": null },
+      { "item": "coverage_amount_cancer", "old": 30000000, "new": 20000000, "delta_type": "decrease", "status": "confirmed", "evidence": "암 진단비 2,000만원 (최초 1회 지급)", "source_id": "product_B", "source_location": "coverage_list", "linked_need_id": "need_04_01", "note": null, "judgment": null }
+    ],
+    "unchanged_items": [],
+    "unknowns": [],
+    "conflicts": [
+      {
+        "item": "coverage_amount_cancer",
+        "type": "source_discrepancy",
+        "old": null,
+        "new": null,
+        "sources": [
+          { "source_id": "conversation_04", "source_location": "msg_04_02", "evidence": "암 보장은 그대로예요" },
+          { "source_id": "product_B", "source_location": "coverage_list", "evidence": "암 진단비 2,000만원 (최초 1회 지급)" }
+        ],
+        "description": "설계사는 암 보장이 그대로라고 안내했으나, 상품 데이터상 실제로는 3,000만원에서 2,000만원으로 축소됨. 비교 결과(changes)는 데이터를 근거로 확정하되, 이 불일치는 별도 확인이 필요함.",
+        "judgment": null
+      }
+    ],
+    "additional_conditions": [],
+    "judgment": null
+  },
+
+  "TC-05": {
+    "customer_needs": [
+      {
+        "need_id": "need_05_01",
+        "need_summary": "은퇴자금과 관련해 해지환급률을 정확히 알고 싶음",
+        "source_message_ids": ["msg_05_01", "msg_05_05"],
+        "evidence": [
+          "제가 은퇴가 얼마 안 남아서요, 혹시 중간에 해지하게 되면 얼마나 돌려받을 수 있는지가 제일 궁금해요.",
+          "확실한 거죠? 이게 은퇴 자금이랑 관련돼서 정확하게 알아야 할 것 같아서요."
+        ]
+      }
+    ],
+    "changes": [
+      { "item": "premium", "old": 100000, "new": 90000, "delta_type": "decrease", "status": "confirmed", "evidence": "월 보험료 90,000원", "source_id": "product_B", "source_location": "product_summary_brochure", "linked_need_id": null, "note": null, "judgment": null }
+    ],
+    "unchanged_items": [],
+    "unknowns": [],
+    "conflicts": [
+      {
+        "item": "surrender_value",
+        "type": "document_conflict",
+        "old": "45%",
+        "new": null,
+        "sources": [
+          { "source_id": "product_B", "source_location": "product_summary_brochure", "evidence": "10년 시점 해지환급률 약 40%" },
+          { "source_id": "product_B", "source_location": "product_terms_detail", "evidence": "제12조(해지환급금) 10년 경과 시점 해지환급률은 35%로 한다" }
+        ],
+        "description": "신규 상품의 요약 안내서와 상세 약관이 10년 시점 해지환급률을 서로 다르게 제시함(40% vs 35%). 두 문서 모두 동일한 신뢰도의 공식 자료이므로 단일 값으로 확정하지 않음.",
+        "judgment": null
+      }
+    ],
+    "additional_conditions": [],
+    "judgment": null
+  },
+
+  "TC-10": {
+    "customer_needs": [
+      {
+        "need_id": "need_10_01",
+        "need_summary": "무사고 할인 특약 적용 여부 확인",
+        "source_message_ids": ["msg_10_01", "msg_10_03"],
+        "evidence": [
+          "제가 어디서 듣기로 요즘 보험은 무사고 할인 같은 것도 된다고 하던데, 이 상품도 무사고 할인 되나요?",
+          "네, 제가 사고 이력이 하나도 없어서 혹시 되면 좋을 것 같아서요."
+        ]
+      }
+    ],
+    "changes": [
+      { "item": "premium", "old": 90000, "new": 82000, "delta_type": "decrease", "status": "confirmed", "evidence": "월 보험료 82,000원", "source_id": "product_B", "source_location": "product_brochure_p1", "linked_need_id": null, "note": null, "judgment": null }
+    ],
+    "unchanged_items": [],
+    "unknowns": [
+      {
+        "item": "no_accident_discount",
+        "old": null,
+        "new": null,
+        "status": "confirmed_absent",
+        "evidence": "본 상품의 전체 특약 목록(빠짐없이 기재): 1) 질병입원특약, 2) 상해통원특약, 3) 3대질병진단특약, 4) 실손의료비특약. (무사고 관련 할인 특약은 포함되어 있지 않음)",
+        "source_id": "product_B",
+        "source_location": "full_feature_list",
+        "reason": "full_feature_list가 completeness: complete로 명시된 전체 특약 목록이며, 그 안에 무사고 할인 특약이 없으므로 존재하지 않음이 확정됨",
+        "linked_need_id": "need_10_01",
+        "depends_on": null,
+        "judgment": null
+      }
+    ],
+    "conflicts": [],
+    "additional_conditions": [],
+    "judgment": null
+  },
+
+  "TC-11": {
+    "customer_needs": [
+      {
+        "need_id": "need_11_01",
+        "need_summary": "부모님의 뇌졸중 이력으로 인한 뇌 관련 보장 우려",
+        "source_message_ids": ["msg_11_01"],
+        "evidence": ["저희 부모님이 예전에 뇌졸중을 앓으셔서, 저도 뇌 쪽 보장은 좀 신경 쓰이더라고요."]
+      }
+    ],
+    "changes": [
+      { "item": "premium", "old": 105000, "new": 89000, "delta_type": "decrease", "status": "confirmed", "evidence": "월 보험료 89,000원", "source_id": "product_B", "source_location": "product_brochure_p2", "linked_need_id": null, "note": null, "judgment": null },
+      {
+        "item": "coverage_scope_cerebro",
+        "old": "뇌졸중(뇌경색, 뇌출혈 등 뇌혈관질환 포함)",
+        "new": "허혈성 뇌졸중(뇌경색)만 해당, 출혈성 뇌졸중 제외",
+        "delta_type": "scope_narrowed",
+        "status": "confirmed",
+        "evidence": "진단 기준: 허혈성 뇌졸중(뇌경색)으로 진단 확정된 경우에 한함. 뇌출혈 등 출혈성 뇌졸중은 보장 대상에서 제외됨.",
+        "source_id": "product_B",
+        "source_location": "coverage_list",
+        "linked_need_id": "need_11_01",
+        "note": "보장금액(1,500만원) 자체는 동일하지만 진단 기준이 좁아짐",
+        "judgment": null
+      }
+    ],
+    "unchanged_items": [],
+    "unknowns": [
+      {
+        "item": "parent_stroke_type",
+        "old": null,
+        "new": null,
+        "status": "unknown",
+        "evidence": null,
+        "source_id": "conversation_11",
+        "source_location": "msg_11_01",
+        "reason": "고객은 부모님의 뇌졸중 이력만 언급했을 뿐, 허혈성인지 출혈성인지는 상담에서 확인되지 않음",
+        "linked_need_id": "need_11_01",
+        "depends_on": null,
+        "judgment": null
+      }
+    ],
+    "conflicts": [],
+    "additional_conditions": [],
+    "judgment": null
+  },
+
+  "TC-15": {
+    "customer_needs": [
+      {
+        "need_id": "need_15_01",
+        "need_summary": "어머니의 암 병력으로 인한 암 보장 우려",
+        "source_message_ids": ["msg_15_01"],
+        "evidence": ["저희 어머니가 암 투병을 하셔서, 저도 암 관련 보장은 좀 꼼꼼히 보고 싶어요."]
+      },
+      {
+        "need_id": "need_15_02",
+        "need_summary": "기존 계약 가입 시점을 정확히 기억하지 못함",
+        "source_message_ids": ["msg_15_03"],
+        "evidence": ["이 계약 정확히 언제 가입했는지도 가물가물한데, 꽤 됐죠 아마?"]
+      }
+    ],
+    "changes": [
+      { "item": "premium", "old": 118000, "new": 96000, "delta_type": "decrease", "status": "confirmed", "evidence": "월 보험료 96,000원", "source_id": "product_B", "source_location": "product_summary_brochure", "linked_need_id": null, "note": null, "judgment": null },
+      { "item": "coverage_amount_cerebro_cardiac", "old": 15000000, "new": null, "delta_type": "removed", "status": "confirmed", "evidence": "뇌혈관질환·급성심근경색 특약: 목록에 없음", "source_id": "product_B", "source_location": "product_summary_brochure", "linked_need_id": null, "note": null, "judgment": null },
+      { "item": "coverage_amount_accident_disability", "old": 10000000, "new": 5000000, "delta_type": "decrease", "status": "confirmed", "evidence": "상해장해 보장금액 500만원", "source_id": "product_B", "source_location": "product_summary_brochure", "linked_need_id": null, "note": "설계사는 '그대로'라고 안내했으나 실제로는 축소됨 — conflicts 참고", "judgment": null },
+      {
+        "item": "coverage_scope_cancer",
+        "old": "암(경계성종양, 상피내암 포함)",
+        "new": "침습암만 해당 (경계성종양·상피내암 제외)",
+        "delta_type": "scope_narrowed",
+        "status": "confirmed",
+        "evidence": "암 진단비 3,000만원 (경계성종양·상피내암 제외, 침습암만 해당)",
+        "source_id": "product_B",
+        "source_location": "product_summary_brochure",
+        "linked_need_id": "need_15_01",
+        "note": "보장금액(3,000만원)은 동일하나 진단 기준이 좁아짐",
+        "judgment": null
+      }
+    ],
+    "unchanged_items": [],
+    "unknowns": [
+      { "item": "exclusion_clause_cancer", "old": "가입 후 90일 면책", "new": null, "status": "unknown", "evidence": null, "source_id": "product_B", "source_location": "product_summary_brochure", "reason": "신규 상품 자료가 요약본(partial)이라 면책조항 내용이 포함되지 않음", "linked_need_id": null, "depends_on": null, "judgment": null },
+      { "item": "enrollment_date", "old": null, "new": null, "status": "unknown", "evidence": null, "source_id": "contract_A", "source_location": "enrollment_date field", "reason": "계약 데이터에 가입일자 필드가 비어 있고, 상담에서도 고객이 정확한 시점을 기억하지 못함", "linked_need_id": "need_15_02", "depends_on": null, "judgment": null },
+      { "item": "existing_contract_dissolution_impact", "old": null, "new": null, "status": "unknown", "evidence": null, "source_id": null, "source_location": null, "reason": "enrollment_date가 unknown이므로 해지 시 불이익 규모를 판단할 근거가 없음", "linked_need_id": "need_15_02", "depends_on": ["enrollment_date"], "judgment": null }
+    ],
+    "conflicts": [
+      {
+        "item": "coverage_amount_accident_disability",
+        "type": "source_discrepancy",
+        "old": null,
+        "new": null,
+        "sources": [
+          { "source_id": "conversation_15", "source_location": "msg_15_06", "evidence": "상해 관련 보장은 그대로예요" },
+          { "source_id": "product_B", "source_location": "product_summary_brochure", "evidence": "상해장해 보장금액 500만원" }
+        ],
+        "description": "설계사는 상해 보장이 그대로라고 안내했으나, 실제로는 1,000만원에서 500만원으로 축소됨. 비교 결과는 데이터를 근거로 확정하되, 발화와의 불일치는 별도 확인 필요.",
+        "judgment": null
+      }
+    ],
+    "additional_conditions": [],
+    "judgment": null
+  }
+}

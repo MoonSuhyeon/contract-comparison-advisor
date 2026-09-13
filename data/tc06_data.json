@@ -1,0 +1,80 @@
+{
+  "case_id": "TC-06",
+  "case_title": "동일 정보의 중복 언급 (전처리 단계 보조 테스트)",
+  "role": "C6의 핵심 비교 엔진과는 층위가 다른 보조 테스트입니다. 계약 간 비교가 아니라, 상담 원문에서 고객 니즈를 추출하는 전처리 단계가 같은 니즈를 여러 번 중복 생성하지 않는지를 확인합니다. 이 케이스는 TC-01~05, 07~15처럼 A/B 비교사항 평가 대상에 포함되지 않으며, 커버리지 표에서도 '전처리 보조'로 별도 표시됩니다.",
+
+  "customer": {
+    "customer_id": "cust_06",
+    "profile": "30대, 최근 이직, 기존 계약 3년 유지"
+  },
+
+  "conversation": {
+    "conversation_id": "conversation_06",
+    "messages": [
+      {
+        "message_id": "msg_06_01",
+        "speaker": "customer",
+        "text": "요즘 좀 부담이네요, 월급도 그대로인데 나가는 게 자꾸 늘어서."
+      },
+      {
+        "message_id": "msg_06_02",
+        "speaker": "agent",
+        "text": "아, 어떤 부분이 특히 부담되세요?"
+      },
+      {
+        "message_id": "msg_06_03",
+        "speaker": "customer",
+        "text": "매달 나가는 돈이 크네요, 특히 보험료가."
+      },
+      {
+        "message_id": "msg_06_04",
+        "speaker": "agent",
+        "text": "네, 지금 상품 확인해볼게요."
+      },
+      {
+        "message_id": "msg_06_05",
+        "speaker": "customer",
+        "text": "네 확인 좀 해주세요. 아무튼 보험료가 세요 요즘."
+      },
+      {
+        "message_id": "msg_06_06",
+        "speaker": "agent",
+        "text": "네 확인했습니다. 보험료 조정 가능한 상품들 정리해서 안내드릴게요."
+      }
+    ]
+  },
+
+  "ground_truth": {
+    "customer_needs": [
+      {
+        "need_id": "need_06_01",
+        "need_summary": "보험료 부담 감소",
+        "source_message_ids": ["msg_06_01", "msg_06_03", "msg_06_05"],
+        "evidence": [
+          "요즘 좀 부담이네요, 월급도 그대로인데 나가는 게 자꾸 늘어서",
+          "매달 나가는 돈이 크네요, 특히 보험료가",
+          "아무튼 보험료가 세요 요즘"
+        ]
+      }
+    ],
+    "duplicate_check": {
+      "expected_distinct_need_count": 1,
+      "note": "세 발화(msg_06_01, 03, 05)는 표현은 다르지만 동일한 니즈('보험료 부담')를 가리킨다. 이를 서로 다른 니즈 3개로 분리해서 추출하면 실패다."
+    }
+  },
+
+  "expected_ai_behavior": {
+    "correct_output_example": {
+      "need_id": "need_06_01",
+      "need_summary": "보험료 부담 감소",
+      "source_message_ids": ["msg_06_01", "msg_06_03", "msg_06_05"]
+    },
+    "incorrect_output_pattern": "① 세 발화를 서로 다른 니즈(예: '요즘 부담', '매달 나가는 돈', '보험료가 셈')로 각각 분리해서 3개의 니즈로 추출하는 경우. ② 하나의 니즈로는 통합했지만 근거(source_message_ids/evidence)를 첫 발화(msg_06_01)에만 연결하고 나머지 두 발화를 근거에서 누락하는 경우."
+  },
+
+  "notes_for_evaluator": [
+    "이 케이스는 C6의 핵심 평가 축(Recall/Weighted Recall/Precision/Evidence Accuracy/Unknown Accuracy/Conflict Accuracy)과는 별도로, '중복 검증'이라는 전처리 단계 고유의 체크리스트로 평가합니다. existing_contract나 new_product 비교가 없는 이유도 이 때문입니다.",
+    "이 테스트가 낮은 우선순위로 유지되는 이유는 Step 7 설계 문서에 명시되어 있습니다: C6의 핵심은 상담 내용 자체를 잘 분류하는 것이 아니라 기존 계약과 신규 계약의 중요한 차이를 근거와 함께 찾아내는 것이기 때문입니다. 다만 상담에서 추출된 니즈가 B 항목(고객 핵심 니즈 관련 보장 변화, TC-11 참고)과 연결되어야 하므로, 이 전처리가 안정적으로 작동하는지는 확인해둘 필요가 있습니다.",
+    "실제 구현에서는 이 테스트를 A/B 비교 파이프라인이 아니라, 상담 전사 → 니즈 구조화 단계의 단위 테스트(unit test)로 별도 실행하는 것을 권장합니다."
+  ]
+}

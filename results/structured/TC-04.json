@@ -1,0 +1,89 @@
+{
+  "customer_needs": [
+    {
+      "need_id": "need_01",
+      "need_summary": "보험료를 낮추고 암 보장은 유지하고 싶다.",
+      "source_message_ids": [
+        "msg_04_01",
+        "msg_04_02",
+        "msg_04_03",
+        "msg_04_04"
+      ],
+      "evidence": [
+        "보험료만 좀 낮추고 싶은 거지, 암 보장 같은 건 그대로 유지되면 좋겠는데요.",
+        "네 물론이죠. 지금 상품 월 130,000원인데, 신규 상품으로 옮기시면 115,000원으로 낮아지고요, 암 보장은 그대로예요. 걱정 안 하셔도 됩니다.",
+        "아 다행이네요. 그럼 보험료만 낮아지는 거고 나머지는 똑같은 거죠?",
+        "네 맞습니다. 보험료 부분만 신경 쓰시면 될 것 같아요."
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "item": "premium",
+      "old": 130000,
+      "new": 115000,
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "월 보험료 115,000원",
+      "source_id": "product_B",
+      "source_location": "product_brochure_p2",
+      "judgment": null
+    },
+    {
+      "item": "coverage_items.cancer_diagnosis",
+      "old": 30000000,
+      "new": 20000000,
+      "delta_type": "scope_narrowed",
+      "status": "confirmed",
+      "evidence": "암 진단비 2,000만원 (최초 1회 지급).",
+      "source_id": "product_B",
+      "source_location": "coverage_list",
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [
+    {
+      "item": "coverage_items.cancer_diagnosis",
+      "old": 30000000,
+      "new": 20000000,
+      "delta_type": "unchanged",
+      "status": "confirmed",
+      "evidence": "암 진단비 2,000만원 (최초 1회 지급).",
+      "source_id": "product_B",
+      "source_location": "coverage_list",
+      "judgment": null
+    }
+  ],
+  "unknowns": [],
+  "conflicts": [
+    {
+      "item": "coverage_items.cancer_diagnosis",
+      "type": "source_discrepancy",
+      "old": 30000000,
+      "new": null,
+      "sources": [
+        {
+          "source_id": "contract_A",
+          "source_location": "coverage_list",
+          "evidence": "30000000"
+        },
+        {
+          "source_id": "product_B",
+          "source_location": "coverage_list",
+          "evidence": "암 진단비 2,000만원 (최초 1회 지급)."
+        }
+      ],
+      "description": "기존 계약은 암 진단비가 3,000만원인데 신규 상품에서는 2,000만원으로 줄어들었다.",
+      "judgment": null
+    }
+  ],
+  "additional_conditions": [],
+  "judgment": null,
+  "_usage": {
+    "model": "gpt-4o-mini",
+    "prompt_tokens": 5465,
+    "completion_tokens": 530,
+    "attempts": 2
+  },
+  "_case_id": "TC-04"
+}

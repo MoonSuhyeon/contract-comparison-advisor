@@ -1,0 +1,53 @@
+{
+  "customer_needs": [
+    {
+      "need_id": "need_01",
+      "need_summary": "무사고 할인 여부",
+      "source_message_ids": [
+        "msg_10_01",
+        "msg_10_03",
+        "msg_10_05"
+      ],
+      "evidence": [
+        "제가 어디서 듣기로 요즘 보험은 무사고 할인 같은 것도 된다고 하던데, 이 상품도 무사고 할인 되나요?",
+        "네, 제가 사고 이력이 하나도 없어서 혹시 되면 좋을 것 같아서요.",
+        "아 그래요? 그럼 그건 없는 거네요."
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "item": "premium",
+      "old": 90000,
+      "new": 82000,
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "월 보험료 82,000원.",
+      "source_id": "product_B",
+      "source_location": "product_brochure_p1",
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [],
+  "unknowns": [
+    {
+      "item": "no_no_claim_discount",
+      "status": "confirmed_absent",
+      "evidence": "(무사고 관련 할인 특약은 포함되어 있지 않음)",
+      "source_id": "product_B",
+      "source_location": "full_feature_list",
+      "reason": "신규 상품의 완전한 특약 목록에서 무사고 할인 특약이 존재하지 않음.",
+      "judgment": null
+    }
+  ],
+  "conflicts": [],
+  "additional_conditions": [],
+  "judgment": null,
+  "_usage": {
+    "model": "gpt-4o-mini",
+    "prompt_tokens": 5288,
+    "completion_tokens": 276,
+    "attempts": 2
+  },
+  "_case_id": "TC-10"
+}

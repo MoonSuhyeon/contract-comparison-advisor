@@ -1,0 +1,167 @@
+{
+  "case_id": "TC-02",
+  "case_title": "서로 다른 방향의 변화가 함께 발생하는 케이스",
+  "role": "보험료는 상승하고 보장금액은 확대되는, 방향이 서로 다른 변화가 동시에 발생하는 상황. AI가 두 변화를 각각 사실대로만 표시하고, 유불리를 종합 판정하지 않는지를 확인한다. (Precision / 변화 방향 정확성 중심 케이스이며, Recall/Weighted Recall은 주 평가 대상이 아니다)",
+
+  "customer": {
+    "customer_id": "cust_02",
+    "profile": "30대, 미혼, 기존 계약 5년 유지"
+  },
+
+  "conversation": {
+    "conversation_id": "conversation_02",
+    "messages": [
+      {
+        "message_id": "msg_02_01",
+        "speaker": "customer",
+        "text": "요즘 암 보험 리모델링한다는 얘기 많이 들어서요. 저도 지금 거 괜찮은지 한번 봐주실 수 있어요?"
+      },
+      {
+        "message_id": "msg_02_02",
+        "speaker": "agent",
+        "text": "네, 확인해보니 지금 가입하신 상품은 월 90,000원이고, 암 진단비는 2,000만원으로 되어 있네요."
+      },
+      {
+        "message_id": "msg_02_03",
+        "speaker": "customer",
+        "text": "2,000만원이면 요즘 치료비 생각하면 좀 부족하다고 들었는데."
+      },
+      {
+        "message_id": "msg_02_04",
+        "speaker": "agent",
+        "text": "맞아요, 그래서 요즘은 4,000만원 정도로 보장받는 분들이 많으세요. 신규 상품으로 옮기시면 암 진단비가 4,000만원으로 늘어나긴 하는데, 대신 보험료는 월 120,000원으로 올라갑니다."
+      },
+      {
+        "message_id": "msg_02_05",
+        "speaker": "customer",
+        "text": "음, 그러면 전체적으로 저한테 좋은 거예요?"
+      },
+      {
+        "message_id": "msg_02_06",
+        "speaker": "agent",
+        "text": "음... 보장이 두 배 되는 거니까 전체적으로 보면 좋아지는 셈이죠. 다만 매달 나가는 돈이 3만원 늘어나긴 해요."
+      },
+      {
+        "message_id": "msg_02_07",
+        "speaker": "customer",
+        "text": "흠, 다른 조건들은 그대로인 거죠?"
+      },
+      {
+        "message_id": "msg_02_08",
+        "speaker": "agent",
+        "text": "네, 갱신주기나 해지환급률 같은 나머지 조건은 지금이랑 동일하게 유지됩니다."
+      }
+    ]
+  },
+
+  "existing_contract": {
+    "source_id": "contract_A",
+    "product_name": "OO화재 암보장플랜",
+    "fields": {
+      "premium": 90000,
+      "coverage_items": {
+        "cancer_diagnosis": 20000000
+      },
+      "renewal_period": "5년",
+      "surrender_value_at_5y": "50%"
+    }
+  },
+
+  "new_product": {
+    "source_id": "product_B",
+    "product_name": "OO화재 암보장플랜 리뉴얼",
+    "documents": {
+      "product_brochure_p2": {
+        "text": "월 보험료 120,000원"
+      },
+      "coverage_list": {
+        "text": "암 진단비 4,000만원 (최초 1회 지급)."
+      },
+      "renewal_clause": {
+        "text": "갱신주기 5년."
+      },
+      "surrender_value_table": {
+        "text": "5년납 기준 해지환급률 50%."
+      }
+    }
+  },
+
+  "ground_truth": {
+    "changes": [
+      {
+        "item": "premium",
+        "old": 90000,
+        "new": 120000,
+        "change": "increase",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "product_brochure_p2",
+        "evidence": "월 보험료 120,000원"
+      },
+      {
+        "item": "coverage_amount_cancer",
+        "old": 20000000,
+        "new": 40000000,
+        "change": "increase",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "coverage_list",
+        "evidence": "암 진단비 4,000만원 (최초 1회 지급)"
+      }
+    ],
+    "unchanged_items": [
+      {
+        "item": "renewal_period",
+        "old": "5년",
+        "new": "5년",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "renewal_clause",
+        "evidence": "갱신주기 5년"
+      },
+      {
+        "item": "surrender_value",
+        "old": "50%",
+        "new": "50%",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "surrender_value_table",
+        "evidence": "5년납 기준 해지환급률 50%"
+      }
+    ],
+    "weighted_recall_target_items": [],
+    "unknown_or_confirmed_absent_items": [],
+    "additional_conditions": []
+  },
+
+  "expected_ai_behavior": {
+    "correct_output_example": [
+      {
+        "item": "premium",
+        "old": 90000,
+        "new": 120000,
+        "change": "increase",
+        "status": "confirmed",
+        "evidence": "월 보험료 120,000원",
+        "judgment": null
+      },
+      {
+        "item": "coverage_amount_cancer",
+        "old": 20000000,
+        "new": 40000000,
+        "change": "increase",
+        "status": "confirmed",
+        "evidence": "암 진단비 4,000만원 (최초 1회 지급)",
+        "judgment": null
+      }
+    ],
+    "incorrect_output_pattern": "AI가 msg_02_06의 설계사 발화(\"전체적으로 보면 좋아지는 셈\")를 그대로 받아 judgment 필드에 '전체적으로 유리함' 같은 판정을 채우거나, 두 변화를 종합해서 '이 상품이 더 낫다'는 결론을 생성하는 경우. 이는 C6의 핵심 원칙인 'AI는 유불리를 판단하지 않는다'를 위반한 것으로 별도 기록한다(Boundary Violation). 변화가 없는 항목을 변화로 잘못 검출하거나, increase/decrease 방향을 잘못 표시한 경우는 Precision 및 변화 방향 정확성 오류로 평가한다."
+  },
+
+  "notes_for_evaluator": [
+    "이 케이스는 Recall/Weighted Recall보다 Precision, 변화 방향 정확성, AI 판단 경계(Boundary) 준수 여부를 확인하는 케이스입니다. 변화 항목이 2개뿐이므로 '빠뜨렸는가'보다 '각 변화를 정확한 방향으로 표현했는가'와 '변경 사실을 유불리 판단으로 확장하지 않는가'가 핵심입니다.",
+    "msg_02_06에서 설계사가 '전체적으로 보면 좋아지는 셈'이라는 판단성 발화를 합니다. 이는 의도적으로 넣은 함정으로, AI가 이 발화를 근거로 자체적인 유불리 결론을 만들어내는지 확인하기 위한 것입니다. Ground Truth의 changes 배열에는 이 판단 문장 자체가 포함되지 않으며, AI Output의 judgment 필드도 항상 null이어야 합니다. 이 필드가 채워지면 Precision 오류가 아니라 별도의 Boundary Violation으로 기록합니다.",
+    "renewal_period와 surrender_value는 상담(msg_02_08)과 상품 데이터 양쪽에서 모두 '변화 없음'으로 확인됩니다. TC-01과 마찬가지로 unchanged_items로 분리해 과검출 여부(Precision)를 함께 확인합니다.",
+    "weighted_recall_target_items를 비워둔 이유: Step 7의 중요도 표는 '보장금액/범위 축소'를 Critical로 분류하는데, 이 케이스의 보장 변화는 축소가 아니라 확대(increase)입니다. 확대가 동일한 가중치 체계에 들어가야 하는지는 Step 7에서 명시적으로 정의되지 않았으므로, 이번 케이스에서는 Weighted Recall 평가 대상에서 제외하고 Recall/Weighted Recall이 아닌 Precision과 변화 방향 정확성만 평가합니다. (확대 변화의 가중치 처리가 필요하다면 Step 7 중요도 표를 별도로 확장하는 것을 향후 검토 과제로 남깁니다.)"
+  ]
+}

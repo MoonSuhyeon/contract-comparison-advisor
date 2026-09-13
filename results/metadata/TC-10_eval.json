@@ -1,0 +1,10 @@
+{
+  "case_id": "TC-10",
+  "recall_hits": 1,
+  "recall_total": 1,
+  "precision_violations": 0,
+  "precision_total": 1,
+  "evidence_ungrounded": 0,
+  "evidence_total": 2,
+  "findings": []
+}

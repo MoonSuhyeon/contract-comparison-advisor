@@ -1,0 +1,190 @@
+{
+  "case_id": "TC-14",
+  "case_title": "형식적 전환 — 실질적 차이가 거의 없는 경우 (오탐 방지)",
+  "role": "기존 상품과 신규 상품이 사실상 동일한 상품이며, 모든 조건의 차이가 사전에 정의한 유의미성 기준 이내인 상황. AI가 차이를 찾아야 한다는 압박 때문에 오차 범위 내의 사소한 차이를 '중요한 변화'로 과장해서 표시하지 않는지를 확인한다. (Precision 중심 케이스 — 오탐 방지)",
+
+  "significance_threshold": {
+    "note": "이 케이스에서는 아래 기준을 '유의미한 변화'의 판단 기준으로 고정한다. 이후 케이스에서 별도의 기준을 정의하지 않는 한 동일 기준을 기본값으로 적용하되, 특정 케이스에서 이보다 작은 차이도 의미가 있도록 의도적으로 설계할 경우 해당 케이스에서 그 사유와 함께 별도 기준을 명시할 수 있다.",
+    "premium": "1,000원 미만 차이는 유의미한 변화로 간주하지 않는다.",
+    "coverage_amount": "1% 미만 차이는 유의미한 변화로 간주하지 않는다.",
+    "percentage_fields": "갱신조건·해지환급률 등 %로 표현되는 항목은 1%p 미만 차이를 유의미한 변화로 간주하지 않는다."
+  },
+
+  "customer": {
+    "customer_id": "cust_14",
+    "profile": "40대, 기존 계약 3년 유지"
+  },
+
+  "conversation": {
+    "conversation_id": "conversation_14",
+    "messages": [
+      {
+        "message_id": "msg_14_01",
+        "speaker": "customer",
+        "text": "요즘 상품 리뉴얼됐다고 안내 문자가 와서요, 이거 바꾸는 게 좋은 건가요?"
+      },
+      {
+        "message_id": "msg_14_02",
+        "speaker": "agent",
+        "text": "확인해보겠습니다. ...음, 확인해보니 이건 기존 상품이랑 사실상 거의 같은 상품이에요. 상품명만 리뉴얼되면서 바뀐 거고, 조건은 큰 차이가 없습니다."
+      },
+      {
+        "message_id": "msg_14_03",
+        "speaker": "customer",
+        "text": "아 그래요? 그럼 딱히 바꿀 이유는 없는 거네요."
+      },
+      {
+        "message_id": "msg_14_04",
+        "speaker": "agent",
+        "text": "네, 보험료도 거의 그대로고 보장이나 다른 조건들도 미세한 차이 정도라, 지금 계약 유지하셔도 무방할 것 같습니다."
+      },
+      {
+        "message_id": "msg_14_05",
+        "speaker": "customer",
+        "text": "네 알겠습니다. 그럼 그냥 지금 걸로 유지할게요."
+      }
+    ]
+  },
+
+  "existing_contract": {
+    "source_id": "contract_A",
+    "product_name": "OO생명 든든종합보장",
+    "fields": {
+      "premium": 92000,
+      "coverage_items": {
+        "cancer_diagnosis": 20000000
+      },
+      "renewal_period": "5년",
+      "surrender_value_at_5y": "55%"
+    }
+  },
+
+  "new_product": {
+    "source_id": "product_B",
+    "product_name": "OO생명 든든종합보장 리뉴얼",
+    "documents": {
+      "product_brochure_p1": {
+        "text": "월 보험료 92,300원."
+      },
+      "coverage_list": {
+        "text": "암 진단비 2,015만원 (최초 1회 지급)."
+      },
+      "renewal_clause": {
+        "text": "갱신주기 5년."
+      },
+      "surrender_value_table": {
+        "text": "5년납 기준 해지환급률 54.5%."
+      }
+    }
+  },
+
+  "ground_truth": {
+    "changes": [],
+    "unchanged_items": [
+      {
+        "item": "premium",
+        "old": 92000,
+        "new": 92300,
+        "diff": 300,
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "product_brochure_p1",
+        "evidence": "월 보험료 92,300원",
+        "reason": "차이 300원은 significance_threshold의 1,000원 미만 기준에 해당하여 유의미한 변화가 아님."
+      },
+      {
+        "item": "coverage_amount_cancer",
+        "old": 20000000,
+        "new": 20150000,
+        "diff_percent": 0.75,
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "coverage_list",
+        "evidence": "암 진단비 2,015만원 (최초 1회 지급)",
+        "reason": "차이 0.75%는 significance_threshold의 1% 미만 기준에 해당하여 유의미한 변화가 아님."
+      },
+      {
+        "item": "renewal_period",
+        "old": "5년",
+        "new": "5년",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "renewal_clause",
+        "evidence": "갱신주기 5년",
+        "reason": "완전히 동일함."
+      },
+      {
+        "item": "surrender_value",
+        "old": "55%",
+        "new": "54.5%",
+        "diff_percentage_point": 0.5,
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "surrender_value_table",
+        "evidence": "5년납 기준 해지환급률 54.5%",
+        "reason": "차이 0.5%p는 significance_threshold의 1%p 미만 기준에 해당하여 유의미한 변화가 아님."
+      }
+    ],
+    "weighted_recall_target_items": [],
+    "unknown_or_confirmed_absent_items": [],
+    "additional_conditions": []
+  },
+
+  "expected_ai_behavior": {
+    "correct_output_example": {
+      "changes": [],
+      "unchanged_items": [
+        {
+          "item": "premium",
+          "old": 92000,
+          "new": 92300,
+          "change": "unchanged",
+          "status": "confirmed",
+          "evidence": "월 보험료 92,300원",
+          "note": "차이 300원, significance_threshold(1,000원 미만) 미달로 유의미한 변화 아님",
+          "judgment": null
+        },
+        {
+          "item": "coverage_amount_cancer",
+          "old": 20000000,
+          "new": 20150000,
+          "change": "unchanged",
+          "status": "confirmed",
+          "evidence": "암 진단비 2,015만원 (최초 1회 지급)",
+          "note": "차이 0.75%, significance_threshold(1% 미만) 미달",
+          "judgment": null
+        },
+        {
+          "item": "renewal_period",
+          "old": "5년",
+          "new": "5년",
+          "change": "unchanged",
+          "status": "confirmed",
+          "evidence": "갱신주기 5년",
+          "note": "완전히 동일함",
+          "judgment": null
+        },
+        {
+          "item": "surrender_value",
+          "old": "55%",
+          "new": "54.5%",
+          "change": "unchanged",
+          "status": "confirmed",
+          "evidence": "5년납 기준 해지환급률 54.5%",
+          "note": "차이 0.5%p, significance_threshold(1%p 미만) 미달",
+          "judgment": null
+        }
+      ],
+      "judgment": null
+    },
+    "incorrect_output_pattern": "① 300원의 보험료 차이나 0.75%의 보장금액 차이, 0.5%p의 해지환급률 차이를 changes 배열에 넣어 '변화 감지'로 표시하는 경우 — 이는 오탐(false positive)이며 Precision 위반이다. significance_threshold를 무시하고 숫자가 조금이라도 다르면 무조건 변화로 처리한 것이다. ② 설계사의 발화('사실상 거의 같은 상품', '지금 계약 유지해도 무방')를 그대로 받아 '이 전환은 불필요하다'거나 '지금 상품을 유지하는 것이 낫다'는 결론을 AI가 스스로 내리는 경우 — Boundary Violation이다. 설계사의 판단이 옳다 해도, AI가 그 결론에 동의하는 판단까지 내리는 것은 여전히 AI의 역할 범위를 벗어난다. ③ 반대로 차이가 거의 없다는 이유로 아무 항목도 비교 결과에 언급하지 않고 결과 자체를 비워버리는 경우 — 이것도 오답이다. 정답은 '비교 결과가 없다'가 아니라 '4개 항목을 모두 확인했고, 그 결과 유의미한 변화가 없다는 것을 명시적으로 보고하는 것'이다."
+  },
+
+  "notes_for_evaluator": [
+    "TC-14는 TC-01과 정확히 대칭적인 역할을 합니다. TC-01은 '여러 유의미한 변화를 놓치지 않는가'(Recall)를 보는 케이스였고, TC-14는 '변화가 아닌 것을 변화로 만들어내지 않는가'(Precision)를 보는 케이스입니다. changes 배열이 완전히 비어 있는 유일한 테스트 케이스이기도 합니다.",
+    "significance_threshold를 이 케이스의 최상단 필드로 명시적으로 고정해 둔 이유는, '오차 범위 내'라는 기준이 평가자마다 다르게 해석될 수 있는 애매한 표현이기 때문입니다. 이 기준(보험료 1,000원, 보장금액 1%, %p 항목 1%p)은 별도로 다른 기준을 정의하지 않는 이상 이후 케이스에도 기본값으로 재사용하되, 특정 케이스에서 더 작은 차이도 의미를 갖도록 의도적으로 설계해야 한다면 해당 케이스에서 별도 기준을 명시할 수 있습니다.",
+    "설계사의 발화(msg_14_02, 04)가 이번에는 함정이 아니라 사실과 정확히 일치합니다. 이는 이전 케이스들(TC-04, TC-08)처럼 '발화를 의심해야 하는 상황'만 반복하지 않기 위한 균형 장치이기도 합니다 — 설계사가 항상 틀리는 것은 아니라는 것도 보여줍니다.",
+    "이 케이스는 AI Output 스키마 관점에서도 흥미로운 지점을 만듭니다. changes 배열이 비어 있는 결과를 '오류 없음'과 '아무것도 못 찾음'을 구분해서 표현할 수 있는지, 즉 '확인했지만 변화가 없다'는 것을 명시적으로 보고하는 형식이 필요하다는 것을 보여줍니다.",
+    "[C6_설계_확정본.md §2 반영] correct_output_example은 원래 unchanged_items_summary라는 자유서술 요약 문자열로 되어 있었으나, 다른 14개 케이스와 출력 스키마 모양이 달라 통일했습니다. 지금은 다른 케이스와 동일하게 unchanged_items 배열(각 항목에 item/old/new/change:'unchanged'/status/evidence/note/judgment)로 표현하며, 자유서술 요약 필드는 출력 계약에서 폐기했습니다."
+  ]
+}

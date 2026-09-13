@@ -1,0 +1,25 @@
+{
+  "case_id": "TC-11",
+  "recall_hits": 2,
+  "recall_total": 2,
+  "precision_violations": 0,
+  "precision_total": 3,
+  "evidence_ungrounded": 0,
+  "evidence_total": 3,
+  "findings": [
+    {
+      "rule": "DUP-MATCH",
+      "severity": "HUMAN-QUEUE",
+      "axis": "matching",
+      "message": "이 GT 항목은 이미 다른 AI 항목이 매칭했음 — AI가 하나의 GT 사실을 여러 항목으로 쪼갰을 가능성(추가 Recall 가산 없이 기록만)",
+      "item_ref": "coverage_items.cerebro_diagnosis.diagnosis_scope"
+    },
+    {
+      "rule": "D4",
+      "severity": "AUTO-FAIL",
+      "axis": "unknown",
+      "message": "GT상 unknown 항목인데 AI 출력에 대응하는 unknown이 없음(Unknown Recall 위반)",
+      "item_ref": "parent_stroke_type"
+    }
+  ]
+}

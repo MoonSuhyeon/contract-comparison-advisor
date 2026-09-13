@@ -1,0 +1,98 @@
+{
+  "customer_needs": [
+    {
+      "need_id": "need_01",
+      "need_summary": "보험료를 줄이고싶다",
+      "source_message_ids": [
+        "msg_01_01",
+        "msg_01_04"
+      ],
+      "evidence": [
+        "보험료가 너무 부담돼서요. 좀 줄일 수 있는 방법 없을까요?",
+        "오 그럼 좀 낮아지는 거네요."
+      ]
+    },
+    {
+      "need_id": "need_02",
+      "need_summary": "보장 내용의 차이 확인",
+      "source_message_ids": [
+        "msg_01_05",
+        "msg_01_08"
+      ],
+      "evidence": [
+        "근데 보장 내용은 똑같은 거예요?",
+        "그래도 이게 뭐가 더 좋은 건지 잘 모르겠어요."
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "item": "premium",
+      "old": 150000,
+      "new": 110000,
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "월 보험료 110,000원",
+      "source_id": "product_B",
+      "source_location": "product_brochure_p3",
+      "judgment": null
+    },
+    {
+      "item": "renewal_period",
+      "old": "10년",
+      "new": "5년",
+      "delta_type": "shortened",
+      "status": "confirmed",
+      "evidence": "갱신주기 5년.",
+      "source_id": "product_B",
+      "source_location": "renewal_clause",
+      "judgment": null
+    },
+    {
+      "item": "surrender_value_at_10y",
+      "old": "62%",
+      "new": "31%",
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "10년납 기준 해지환급률 31%.",
+      "source_id": "product_B",
+      "source_location": "surrender_value_table",
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [
+    {
+      "item": "coverage_items.cancer_diagnosis",
+      "old": 30000000,
+      "new": 30000000,
+      "delta_type": "unchanged",
+      "status": "confirmed",
+      "evidence": "암 진단비 3,000만원 (최초 1회 지급).",
+      "source_id": "product_B",
+      "source_location": "coverage_list",
+      "judgment": null
+    },
+    {
+      "item": "coverage_items.cerebro_cardiac_diagnosis",
+      "old": 15000000,
+      "new": null,
+      "delta_type": "removed",
+      "status": "confirmed",
+      "evidence": "뇌혈관질환·급성심근경색 진단비 특약: 목록에 없음.",
+      "source_id": "product_B",
+      "source_location": "coverage_list",
+      "judgment": null
+    }
+  ],
+  "unknowns": [],
+  "conflicts": [],
+  "additional_conditions": [],
+  "judgment": null,
+  "_usage": {
+    "model": "gpt-4o-mini",
+    "prompt_tokens": 5845,
+    "completion_tokens": 498,
+    "attempts": 2
+  },
+  "_case_id": "TC-01"
+}

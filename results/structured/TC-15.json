@@ -1,0 +1,146 @@
+{
+  "customer_needs": [
+    {
+      "need_id": "need_01",
+      "need_summary": "암 관련 보장을 꼼꼼히 보고 싶다.",
+      "source_message_ids": [
+        "msg_15_01"
+      ],
+      "evidence": [
+        "저희 어머니가 암 투병을 하셔서, 저도 암 관련 보장은 좀 꼼꼼히 보고 싶어요."
+      ]
+    },
+    {
+      "need_id": "need_02",
+      "need_summary": "보험료 부담을 줄이고 싶다.",
+      "source_message_ids": [
+        "msg_15_02"
+      ],
+      "evidence": [
+        "네, 확인해드릴게요. 그리고 요즘 보험료 부담도 있으실 텐데 그 부분도 같이 봐드리겠습니다."
+      ]
+    },
+    {
+      "need_id": "need_03",
+      "need_summary": "기존 계약의 정확한 가입일자가 궁금하다.",
+      "source_message_ids": [
+        "msg_15_03"
+      ],
+      "evidence": [
+        "이 계약 정확히 언제 가입했는지도 가물가물한데, 꽤 됐죠 아마?"
+      ]
+    },
+    {
+      "need_id": "need_04",
+      "need_summary": "상해 관련 보장이 유지되는지 확인하고 싶다.",
+      "source_message_ids": [
+        "msg_15_05"
+      ],
+      "evidence": [
+        "그리고 상해 관련 보장은 그대로 유지되는 거 맞죠?"
+      ]
+    },
+    {
+      "need_id": "need_05",
+      "need_summary": "면책 기간이 그대로인지 확인하고 싶다.",
+      "source_message_ids": [
+        "msg_15_07"
+      ],
+      "evidence": [
+        "좋네요. 그럼 면책기간 같은 것도 지금이랑 똑같은 거죠?"
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "item": "premium",
+      "old": 118000,
+      "new": 96000,
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "월 보험료 96,000원.",
+      "source_id": "product_B",
+      "source_location": "product_summary_brochure",
+      "linked_need_id": "need_02",
+      "note": null,
+      "judgment": null
+    },
+    {
+      "item": "coverage_items.cancer_diagnosis.diagnosis_scope",
+      "old": "암(경계성종양, 상피내암 포함)",
+      "new": "침습암만 해당",
+      "delta_type": "scope_narrowed",
+      "status": "confirmed",
+      "evidence": "암 진단비 3,000만원 (경계성종양·상피내암 제외, 침습암만 해당).",
+      "source_id": "product_B",
+      "source_location": "product_summary_brochure",
+      "linked_need_id": "need_01",
+      "note": null,
+      "judgment": null
+    },
+    {
+      "item": "coverage_items.accident_disability",
+      "old": 10000000,
+      "new": 5000000,
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "상해장해 보장금액 500만원.",
+      "source_id": "product_B",
+      "source_location": "product_summary_brochure",
+      "linked_need_id": "need_04",
+      "note": null,
+      "judgment": null
+    },
+    {
+      "item": "coverage_items.cerebro_cardiac_diagnosis",
+      "old": 15000000,
+      "new": null,
+      "delta_type": "removed",
+      "status": "confirmed",
+      "evidence": "뇌혈관질환·급성심근경색 특약: 목록에 없음.",
+      "source_id": "product_B",
+      "source_location": "product_summary_brochure",
+      "linked_need_id": null,
+      "note": null,
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [
+    {
+      "item": "exclusion_clause.cancer",
+      "old": "가입 후 90일 면책",
+      "new": null,
+      "delta_type": "unchanged",
+      "status": "confirmed",
+      "evidence": "가입 후 90일 면책",
+      "source_id": "contract_A",
+      "source_location": "contract_A",
+      "linked_need_id": null,
+      "note": null,
+      "judgment": null
+    }
+  ],
+  "unknowns": [
+    {
+      "item": "enrollment_date",
+      "old": null,
+      "new": null,
+      "status": "unknown",
+      "evidence": null,
+      "source_id": "contract_A",
+      "source_location": null,
+      "reason": "고객이 정확한 가입일자를 기억하지 못함.",
+      "judgment": null
+    }
+  ],
+  "conflicts": [],
+  "additional_conditions": [],
+  "judgment": null,
+  "_usage": {
+    "model": "gpt-4o-mini",
+    "prompt_tokens": 6448,
+    "completion_tokens": 812,
+    "attempts": 2
+  },
+  "_case_id": "TC-15"
+}
