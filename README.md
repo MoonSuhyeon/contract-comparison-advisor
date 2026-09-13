@@ -1,25 +1,29 @@
 # Contract Comparison Advisor
 
-기존 보험계약을 신규 상품으로 전환할 때 놓치기 쉬운 조건 변화(보장·지급조건·갱신·환급금)를
-AI가 근거와 함께 찾아내되, AI(Extract/Compare/Flag/Unknown/Evidence)와 사람(Judge/Explain/
-Confirm/Record)의 판단 범위를 분리해서 검증하는 프로젝트입니다. 질문은 "AI가 계약을 잘
+## 문제정의
+
+기존 보험계약을 신규 상품으로 전환할 때, 보장·지급조건·갱신·환급금 같은 눈에 잘 안 띄는
+조건 변화를 놓치면 고객이 손해를 볼 수 있습니다. 금융위원회도 GA(법인보험대리점)의 이런
+"중요사항 비교 미고지"를 반복되는 불완전판매 문제로 지목한 바 있습니다(근거:
+[`C6_문제정의_최종.md`](C6_문제정의_최종.md)). 이 프로젝트가 묻는 질문은 "AI가 계약을 잘
 비교하는가"가 아니라 **"AI의 출력을 어떻게 검증하고, 실패를 사람이 개입 가능한 데이터로
 남기는가"**입니다.
 
-테스트 케이스 15개(Ground Truth 포함)를 설계하고 그중 7개를 구조화 파이프라인과 naive
-프롬프트 양쪽으로 실제 실행해 비교했습니다. 자체 평가기(`src/evaluate.py`)로 채점하는 과정에서
-평가기 자체의 버그 7건을 발견해 수정했고, AI가 놓친 사례 1건은 사람이 직접 검토·수정하는
-Human-in-the-loop까지 시연했습니다.
+## 해결방법
 
-Naive와 Structured의 단순 "변경사항 발견" 능력 차이는 크지 않았지만, 근거 명시·출처 충돌
-보존·판단 경계 준수에서는 뚜렷하게 갈렸습니다. 더 중요한 발견은, Structured도 conflict를
+AI는 Extract/Compare/Flag/Unknown/Evidence까지만 하고, 최종 판단(Judge/Explain/Confirm/
+Record)은 사람이 하도록 역할을 분리했습니다. 테스트 케이스 15개(Ground Truth 포함)를 설계해
+그중 7개를 구조화 파이프라인(프롬프트+JSON 스키마+검증 규칙)과 naive 프롬프트 양쪽으로 실제
+실행·비교했고, 자체 평가기(`src/evaluate.py`)로 채점하는 과정에서 평가기 자체의 버그 7건을
+발견·수정했으며, AI가 놓친 사례 1건은 사람이 직접 검토·수정하는 Human-in-the-loop까지
+시연했습니다.
+
+핵심 발견: naive와 structured의 단순 "변경사항 발견" 능력 차이는 크지 않았지만, 근거 명시·
+출처 충돌 보존·판단 경계 준수에서는 뚜렷하게 갈렸습니다. 더 중요한 건, structured도 conflict를
 종종 놓쳤지만 그 실패를 평가기가 자동으로 감지해 Human Review로 넘길 수 있었던 반면, naive의
-실패는 사람이 원문을 전부 대조해야만 드러났다는 것입니다.
-
-배경(금융위 불완전판매 지적)은 [`C6_문제정의_최종.md`](C6_문제정의_최종.md), 상세 비교표는
+실패는 사람이 원문을 전부 대조해야만 드러났다는 점입니다. 상세 비교표는
 [`SUBMISSION.md`](SUBMISSION.md), 평가기 버그·한계 전체 기록은
-[`results/evaluator_validation_log.md`](results/evaluator_validation_log.md) 참고 — 실패와
-한계를 숨기지 않는 것이 이 프로젝트의 원칙입니다.
+[`results/evaluator_validation_log.md`](results/evaluator_validation_log.md) 참고.
 
 ## 실행 방법
 
