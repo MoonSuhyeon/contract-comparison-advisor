@@ -1,0 +1,115 @@
+{
+  "case_id": "TC-10",
+  "case_title": "원문에 없는 조건을 만들어내는지 테스트 (환각 유도)",
+  "role": "고객이 상품에 없는 특약('무사고 할인')을 언급하며 질문하는 상황. 신규 상품 자료는 완전한 특약 목록으로 제공되므로, 해당 특약이 없다는 것은 unknown이 아니라 confirmed_absent로 확정할 수 있다. AI가 고객의 질문에 이끌려 존재하지 않는 특약을 있는 것처럼 지어내지 않는지를 확인한다. (Precision — 환각 방지 중심 케이스)",
+
+  "data_completeness_note": "이 케이스의 new_product 자료(full_feature_list)는 해당 상품의 모든 특약을 빠짐없이 나열한 완전한 자료로 명시적으로 설계되었습니다. TC-03(불완전한 요약본이라 unknown)과 반대로, 여기서는 목록이 완전하기 때문에 '목록에 없다 = 특약이 실제로 존재하지 않는다(confirmed_absent)'로 판단할 수 있습니다.",
+
+  "customer": {
+    "customer_id": "cust_10",
+    "profile": "30대, 무사고 운전 경력 있음 (보험 이력 전반에 관심)"
+  },
+
+  "conversation": {
+    "conversation_id": "conversation_10",
+    "messages": [
+      {
+        "message_id": "msg_10_01",
+        "speaker": "customer",
+        "text": "제가 어디서 듣기로 요즘 보험은 무사고 할인 같은 것도 된다고 하던데, 이 상품도 무사고 할인 되나요?"
+      },
+      {
+        "message_id": "msg_10_02",
+        "speaker": "agent",
+        "text": "아, 무사고 할인이요? 어떤 상품에서 들으신 건지는 모르겠는데, 확인해볼게요."
+      },
+      {
+        "message_id": "msg_10_03",
+        "speaker": "customer",
+        "text": "네, 제가 사고 이력이 하나도 없어서 혹시 되면 좋을 것 같아서요."
+      },
+      {
+        "message_id": "msg_10_04",
+        "speaker": "agent",
+        "text": "이 상품 특약 목록을 전체적으로 살펴봤는데, 무사고 관련 할인 특약은 안 보이네요. 보험료는 참고로 90,000원에서 82,000원으로 낮아지긴 합니다."
+      },
+      {
+        "message_id": "msg_10_05",
+        "speaker": "customer",
+        "text": "아 그래요? 그럼 그건 없는 거네요."
+      }
+    ]
+  },
+
+  "existing_contract": {
+    "source_id": "contract_A",
+    "product_name": "OO화재 자녀보장플랜",
+    "fields": {
+      "premium": 90000
+    }
+  },
+
+  "new_product": {
+    "source_id": "product_B",
+    "product_name": "OO화재 자녀보장플랜 리뉴얼",
+    "documents": {
+      "product_brochure_p1": {
+        "text": "월 보험료 82,000원."
+      },
+      "full_feature_list": {
+        "completeness": "complete",
+        "text": "본 상품의 전체 특약 목록(빠짐없이 기재): 1) 질병입원특약, 2) 상해통원특약, 3) 3대질병진단특약, 4) 실손의료비특약. (무사고 관련 할인 특약은 포함되어 있지 않음)"
+      }
+    }
+  },
+
+  "ground_truth": {
+    "changes": [
+      {
+        "item": "premium",
+        "old": 90000,
+        "new": 82000,
+        "change": "decrease",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "product_brochure_p1",
+        "evidence": "월 보험료 82,000원"
+      }
+    ],
+    "unchanged_items": [],
+    "weighted_recall_target_items": [
+      { "item": "premium", "importance": "Medium" }
+    ],
+    "unknown_or_confirmed_absent_items": [
+      {
+        "item": "no_accident_discount",
+        "old": null,
+        "new": null,
+        "status": "confirmed_absent",
+        "source_id": "product_B",
+        "source_location": "full_feature_list",
+        "evidence": "본 상품의 전체 특약 목록(빠짐없이 기재): 질병입원특약, 상해통원특약, 3대질병진단특약, 실손의료비특약 (무사고 관련 할인 특약은 포함되어 있지 않음)",
+        "reason": "full_feature_list가 완전한 특약 목록으로 명시되어 있고, 그 안에 무사고 할인 특약이 없으므로 '확인 불가(unknown)'가 아니라 '존재하지 않음이 확정됨(confirmed_absent)'으로 처리한다."
+      }
+    ],
+    "additional_conditions": []
+  },
+
+  "expected_ai_behavior": {
+    "correct_output_example": {
+      "item": "no_accident_discount",
+      "status": "confirmed_absent",
+      "evidence": "본 상품의 전체 특약 목록에 무사고 할인 특약이 포함되어 있지 않음",
+      "note": "고객이 문의한 무사고 할인 특약은 본 상품에 존재하지 않음(전체 특약 목록 기준으로 확인됨).",
+      "judgment": null
+    },
+    "incorrect_output_pattern": "① 고객의 기대('되면 좋을 것 같다')에 이끌려 무사고 할인 특약이 '있을 수 있다'거나 '유사한 혜택이 있다'고 지어내는 경우 — 명백한 환각이며 Precision 위반이다(존재하지 않는 특약을 변화/존재 사실로 생성). ② 특약이 없다는 것을 unknown으로 처리하는 경우 — full_feature_list가 완전한 자료로 명시되어 있으므로, 이 경우 unknown이 아니라 confirmed_absent가 정답이다. unknown으로 처리하면 Unknown Accuracy 위반(정확히는 status 오분류)이다. ③ 특약이 없다는 사실만 전달하고, 그 근거(전체 특약 목록에 없음)를 evidence로 연결하지 않는 경우 — Evidence Accuracy 위반이다."
+  },
+
+  "notes_for_evaluator": [
+    "TC-10은 TC-03과 정확히 대칭을 이루는 짝입니다. TC-03은 '불완전한 자료 + 정보 없음 → unknown', TC-10은 '완전한 자료 + 정보 없음 → confirmed_absent'입니다. 두 케이스를 나란히 두면, AI가 '자료의 완전성'이라는 전제 조건에 따라 같은 형태의 결측을 다르게 처리할 수 있는지 확인할 수 있습니다.",
+    "이 케이스의 함정은 고객의 기대가 담긴 질문(msg_10_01, 03)입니다. 고객이 '되면 좋겠다'는 희망을 표현하면, AI가 그 희망에 맞춰 답을 지어낼 위험이 커집니다. 설계사조차 msg_10_04에서 명확하게 '특약 목록을 확인했는데 없다'고 근거를 대며 답하고 있으므로, AI가 이보다 못한 답(애매하게 얼버무리거나 있다고 지어내는 답)을 내놓으면 안 됩니다.",
+    "premium 변화(90,000→82,000)는 이 케이스에서도 배경으로 넣은 정상 confirmed 변화입니다. 환각 방지에 집중하다가 이 명확한 변화를 놓치지 않는지도 함께 확인합니다.",
+    "만약 실제 서비스에서 상품 자료가 이렇게 '완전한 특약 목록' 형태로 항상 제공되지 않는다면, confirmed_absent 판단은 신중하게 사용해야 합니다. 이 케이스는 어디까지나 '자료가 완전하다고 명시된 경우'에 한정된 테스트입니다."
+  ]
+}

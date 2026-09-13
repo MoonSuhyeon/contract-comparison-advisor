@@ -1,0 +1,90 @@
+{
+  "customer_needs": [
+    {
+      "need_id": "need_01",
+      "need_summary": "부모님 뇌졸중 이력으로 인한 뇌 관련 보장에 대한 걱정",
+      "source_message_ids": [
+        "msg_11_01"
+      ],
+      "evidence": [
+        "저희 부모님이 예전에 뇌졸중을 앓으셔서, 저도 뇌 쪽 보장은 좀 신경 쓰이더라고요."
+      ]
+    },
+    {
+      "need_id": "need_02",
+      "need_summary": "보험료가 줄어들길 바람",
+      "source_message_ids": [
+        "msg_11_03"
+      ],
+      "evidence": [
+        "그리고 보험료도 좀 줄었으면 좋겠어요."
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "item": "premium",
+      "old": 105000,
+      "new": 89000,
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "월 보험료 89,000원.",
+      "source_id": "product_B",
+      "source_location": "product_brochure_p2",
+      "judgment": null
+    },
+    {
+      "item": "coverage_items.cerebro_diagnosis.amount",
+      "old": 15000000,
+      "new": 15000000,
+      "delta_type": "unchanged",
+      "status": "confirmed",
+      "evidence": "뇌혈관질환 진단비 1,500만원.",
+      "source_id": "product_B",
+      "source_location": "coverage_list",
+      "judgment": null
+    },
+    {
+      "item": "coverage_items.cerebro_diagnosis.diagnosis_scope",
+      "old": "뇌졸중(뇌경색, 뇌출혈 등 뇌혈관질환 포함)",
+      "new": "허혈성 뇌졸중(뇌경색)으로 진단 확정된 경우에 한함. 뇌출혈 등 출혈성 뇌졸중은 보장 대상에서 제외됨.",
+      "delta_type": "scope_narrowed",
+      "status": "confirmed",
+      "evidence": "진단 기준: 허혈성 뇌졸중(뇌경색)으로 진단 확정된 경우에 한함. 뇌출혈 등 출혈성 뇌졸중은 보장 대상에서 제외됨.",
+      "source_id": "product_B",
+      "source_location": "coverage_list",
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [],
+  "unknowns": [],
+  "conflicts": [
+    {
+      "item": "coverage_items.cerebro_diagnosis.amount",
+      "type": "source_discrepancy",
+      "sources": [
+        {
+          "source_id": "contract_A",
+          "source_location": "coverage_list",
+          "evidence": "15000000"
+        },
+        {
+          "source_id": "product_B",
+          "source_location": "coverage_list",
+          "evidence": "1,500만원."
+        }
+      ],
+      "description": "보험금액은 변경 없지만, 진단 기준이 다르다. 보험상품에서 보장대상의 범위가 좁아졌다.",
+      "judgment": null
+    }
+  ],
+  "additional_conditions": [],
+  "judgment": null,
+  "_usage": {
+    "model": "gpt-4o-mini",
+    "prompt_tokens": 5693,
+    "completion_tokens": 568,
+    "attempts": 2
+  },
+  "_case_id": "TC-11"
+}

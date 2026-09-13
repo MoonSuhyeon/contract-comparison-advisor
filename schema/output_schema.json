@@ -1,0 +1,202 @@
+{
+  "name": "submit_contract_comparison",
+  "description": "기존계약과 신규상품을 비교한 결과를 제출한다. 판단(judgment)은 항상 null이어야 하며, 원문에 없는 내용을 만들어내면 안 된다.",
+  "input_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "customer_needs": {
+        "type": "array",
+        "description": "conversation에서 추출한, 중복 제거된 고객 니즈 목록. 같은 니즈가 여러 발화에서 반복되면 하나로 통합한다.",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "need_id": { "type": "string", "description": "예: need_01" },
+            "need_summary": { "type": "string" },
+            "source_message_ids": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1
+            },
+            "evidence": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1,
+              "description": "source_message_ids와 1:1 대응하는 원문 인용"
+            }
+          },
+          "required": ["need_id", "need_summary", "source_message_ids", "evidence"]
+        }
+      },
+
+      "changes": {
+        "type": "array",
+        "description": "기존계약과 신규상품 사이에 유의미한 변화(status: confirmed, delta_type != 'unchanged')가 있는 항목.",
+        "items": { "$ref": "#/$defs/changeItem" }
+      },
+
+      "unchanged_items": {
+        "type": "array",
+        "description": "비교했지만 변화가 없거나(delta_type: 'unchanged') 유의미성 기준 미만인 항목. '확인했지만 변화 없음'을 명시하기 위해 반드시 채운다 — 빈 배열이라고 해서 '확인 안 함'을 뜻하지 않는다.",
+        "items": { "$ref": "#/$defs/changeItem" }
+      },
+
+      "unknowns": {
+        "type": "array",
+        "description": "status가 'unknown' 또는 'confirmed_absent'인 항목. 이 둘은 status 값으로만 구분하며 배열은 공유한다.",
+        "items": { "$ref": "#/$defs/unknownItem" }
+      },
+
+      "conflicts": {
+        "type": "array",
+        "description": "출처 간 불일치. type='document_conflict'(문서 vs 문서, 권위 동등) 또는 type='source_discrepancy'(발화 vs 데이터, 데이터가 권위 있음 — 이 경우 changes에도 데이터 기반 confirmed 항목이 별도로 존재해야 함).",
+        "items": { "$ref": "#/$defs/conflictItem" }
+      },
+
+      "additional_conditions": {
+        "type": "array",
+        "description": "기존계약과의 비교 대상(change)은 아니지만, 신규 상품에만 명시적으로 존재하는 별도 확인사항. 예: '갱신 시 보험료 별도 산정'.",
+        "items": { "$ref": "#/$defs/additionalConditionItem" }
+      },
+
+      "judgment": {
+        "type": "null",
+        "description": "항상 null. 전체 결과에 대한 최종 판단/추천/유불리 결론은 절대 포함하지 않는다."
+      }
+    },
+    "required": [
+      "customer_needs",
+      "changes",
+      "unchanged_items",
+      "unknowns",
+      "conflicts",
+      "additional_conditions",
+      "judgment"
+    ],
+
+    "$defs": {
+      "changeItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "item": {
+            "type": "string",
+            "description": "비교 대상 식별자. 고정 enum이 아니라 자유 문자열이다 — GT에 없는 새 item이 등장할 수 있으며 이는 §3-2 Precision 규칙으로 별도 처리한다. 예: premium, coverage_amount_cancer, coverage_scope_cerebro, renewal_period, surrender_value"
+          },
+          "old": {
+            "description": "변경 전 값. 모르면 null.",
+            "type": ["string", "number", "null"]
+          },
+          "new": {
+            "description": "변경 후 값. 항목이 통째로 삭제된 경우 0이 아니라 null을 사용한다.",
+            "type": ["string", "number", "null"]
+          },
+          "delta_type": {
+            "type": "string",
+            "enum": ["increase", "decrease", "removed", "added", "shortened", "extended", "scope_narrowed", "scope_widened", "unchanged"],
+            "description": "사실 묘사어만 허용. '개선/악화/유리/불리' 등 평가어 금지. 이 값이 'unchanged'면 반드시 unchanged_items 배열에, 그 외 값이면 반드시 changes 배열에 있어야 한다. (원래 필드명 'change'가 배열명 'changes'와 겹쳐 TC-01 v1 실행에서 배열 라우팅 오류를 유발해 delta_type으로 개명함 — results/tc01_iteration_log.md 참고)"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["confirmed"],
+            "description": "changes/unchanged_items에서는 항상 confirmed. unknown/confirmed_absent/conflict는 각각 unknowns/conflicts 배열에서 다룬다."
+          },
+          "evidence": {
+            "type": "string",
+            "description": "원문 그대로의 인용문. 반드시 입력 데이터에 실제로 존재해야 한다(§3-2 Precision 규칙으로 자동 검증)."
+          },
+          "source_id": { "type": "string", "description": "예: contract_A, product_B, conversation_01" },
+          "source_location": { "type": "string", "description": "예: coverage_list, product_brochure_p3, msg_01_04" },
+          "linked_need_id": {
+            "type": ["string", "null"],
+            "description": "B항목(고객 맥락 결합 판단)일 때 customer_needs[].need_id를 참조. A항목이면 null."
+          },
+          "note": { "type": ["string", "null"], "description": "보충 설명. 판단어 사용 금지(§3-3 텍스트 스캔 대상)." },
+          "judgment": { "type": "null" }
+        },
+        "required": ["item", "old", "new", "delta_type", "status", "evidence", "source_id", "source_location", "judgment"]
+      },
+
+      "unknownItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "item": { "type": "string" },
+          "old": { "type": ["string", "number", "null"] },
+          "new": { "type": ["string", "number", "null"] },
+          "status": {
+            "type": "string",
+            "enum": ["unknown", "confirmed_absent"],
+            "description": "unknown: 정보 없음/불완전 자료. confirmed_absent: 완전한 자료(completeness=complete)에서 확인된 부재. 판단 순서는 system_prompt §3 참고."
+          },
+          "evidence": {
+            "type": ["string", "null"],
+            "description": "status=unknown이면 반드시 null. status=confirmed_absent이면 반드시 완전한 목록의 원문 인용(non-null)."
+          },
+          "source_id": { "type": ["string", "null"] },
+          "source_location": { "type": ["string", "null"] },
+          "reason": { "type": "string", "description": "왜 unknown/confirmed_absent인지 설명. 필수." },
+          "linked_need_id": { "type": ["string", "null"] },
+          "depends_on": {
+            "type": ["array", "null"],
+            "items": { "type": "string" },
+            "description": "이 unknown이 다른 unknown item에 연쇄적으로 의존하면 그 item 이름을 기록. 예: existing_contract_dissolution_impact -> [\"enrollment_date\"]"
+          },
+          "judgment": { "type": "null" }
+        },
+        "required": ["item", "status", "evidence", "reason", "judgment"]
+      },
+
+      "conflictItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "item": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["document_conflict", "source_discrepancy"],
+            "description": "document_conflict: 신뢰도 동등한 두 문서 간 불일치, 단일 확정값 없음. source_discrepancy: 발화(주장) vs 데이터 불일치, 데이터가 권위 있으며 changes에 별도로 confirmed 항목이 존재해야 함."
+          },
+          "old": { "type": ["string", "number", "null"] },
+          "new": {
+            "type": "null",
+            "description": "conflict는 단일 확정값을 만들지 않으므로 항상 null. source_discrepancy의 확정값은 changes 배열 쪽에 있다."
+          },
+          "sources": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "source_id": { "type": "string" },
+                "source_location": { "type": "string" },
+                "evidence": { "type": "string" }
+              },
+              "required": ["source_id", "source_location", "evidence"]
+            }
+          },
+          "description": { "type": "string", "description": "충돌/불일치 내용 설명. 어느 쪽이 맞는지 단정하지 않는다." },
+          "judgment": { "type": "null" }
+        },
+        "required": ["item", "type", "sources", "description", "judgment"]
+      },
+
+      "additionalConditionItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "item": { "type": "string" },
+          "status": { "type": "string", "enum": ["additional_condition"] },
+          "source_id": { "type": "string" },
+          "source_location": { "type": "string" },
+          "evidence": { "type": "string" },
+          "note": { "type": ["string", "null"] },
+          "judgment": { "type": "null" }
+        },
+        "required": ["item", "status", "source_id", "source_location", "evidence", "judgment"]
+      }
+    }
+  }
+}

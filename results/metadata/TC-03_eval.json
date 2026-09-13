@@ -1,0 +1,39 @@
+{
+  "case_id": "TC-03",
+  "recall_hits": 0,
+  "recall_total": 1,
+  "precision_violations": 0,
+  "precision_total": 3,
+  "evidence_ungrounded": 0,
+  "evidence_total": 5,
+  "findings": [
+    {
+      "rule": "B1-wrong-source",
+      "severity": "HUMAN-QUEUE",
+      "axis": "evidence",
+      "message": "evidence 텍스트는 실존하나 명시한 source_id(contract_A)가 아닌 다른 출처에서 발견됨 — 출처 오귀속 의심",
+      "item_ref": "premium"
+    },
+    {
+      "rule": "M2",
+      "severity": "HUMAN-QUEUE",
+      "axis": "matching",
+      "message": "1차 키 매칭 실패, 같은 카테고리(changes) 안에서 old/new 값이 일치하는 GT 후보 1건 발견 — 출처 오귀속인지 진짜 신규항목인지 사람 확인 필요(자동 점수 미반영)",
+      "item_ref": "premium"
+    },
+    {
+      "rule": "B2",
+      "severity": "HUMAN-QUEUE",
+      "axis": "precision",
+      "message": "GT 어디에도 매칭 안 됨(M1/M2 모두 실패, evidence는 원문에 존재) — GT 누락 후보로 사람 검토 필요",
+      "item_ref": "exclusion_clause.suicide"
+    },
+    {
+      "rule": "B2",
+      "severity": "HUMAN-QUEUE",
+      "axis": "precision",
+      "message": "GT 어디에도 매칭 안 됨(M1/M2 모두 실패, evidence는 원문에 존재) — GT 누락 후보로 사람 검토 필요",
+      "item_ref": "exclusion_clause.specific_disease"
+    }
+  ]
+}

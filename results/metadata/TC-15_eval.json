@@ -1,0 +1,53 @@
+{
+  "case_id": "TC-15",
+  "recall_hits": 3,
+  "recall_total": 4,
+  "precision_violations": 0,
+  "precision_total": 5,
+  "evidence_ungrounded": 0,
+  "evidence_total": 6,
+  "findings": [
+    {
+      "rule": "A11",
+      "severity": "AUTO-FAIL",
+      "axis": "unknown",
+      "message": "delta_type=unchanged인데 old(가입 후 90일 면책) != new(None) — unknown을 unchanged로 위장했을 가능성",
+      "item_ref": "exclusion_clause.cancer"
+    },
+    {
+      "rule": "B2",
+      "severity": "HUMAN-QUEUE",
+      "axis": "precision",
+      "message": "GT 어디에도 매칭 안 됨(M1/M2 모두 실패, evidence는 원문에 존재) — GT 누락 후보로 사람 검토 필요",
+      "item_ref": "coverage_items.cancer_diagnosis.diagnosis_scope"
+    },
+    {
+      "rule": "B2",
+      "severity": "HUMAN-QUEUE",
+      "axis": "precision",
+      "message": "GT 어디에도 매칭 안 됨(M1/M2 모두 실패, evidence는 원문에 존재) — GT 누락 후보로 사람 검토 필요",
+      "item_ref": "exclusion_clause.cancer"
+    },
+    {
+      "rule": "D3",
+      "severity": "AUTO-FAIL",
+      "axis": "conflict",
+      "message": "GT상 conflict인데 AI가 감지하지 못하고 한쪽 값으로 임의 확정함(Conflict Accuracy 위반)",
+      "item_ref": "coverage_amount_accident_disability"
+    },
+    {
+      "rule": "D4",
+      "severity": "AUTO-FAIL",
+      "axis": "unknown",
+      "message": "GT상 unknown 항목인데 AI 출력에 대응하는 unknown이 없음(Unknown Recall 위반)",
+      "item_ref": "exclusion_clause_cancer"
+    },
+    {
+      "rule": "D4",
+      "severity": "AUTO-FAIL",
+      "axis": "unknown",
+      "message": "GT상 unknown 항목인데 AI 출력에 대응하는 unknown이 없음(Unknown Recall 위반)",
+      "item_ref": "existing_contract_dissolution_impact"
+    }
+  ]
+}

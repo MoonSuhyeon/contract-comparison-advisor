@@ -1,0 +1,63 @@
+{
+  "customer_needs": [
+    {
+      "need_id": "need_01",
+      "need_summary": "해지환급률에 대한 정확한 정보",
+      "source_message_ids": ["msg_05_03", "msg_05_05"],
+      "evidence": [
+        "그럼 해지환급률은요?",
+        "확실한 거죠? 이게 은퇴 자금이랑 관련돼서 정확하게 알아야 할 것 같아서요."
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "item": "premium",
+      "old": 100000,
+      "new": 90000,
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "월 보험료 90,000원.",
+      "source_id": "product_B",
+      "source_location": "product_summary_brochure",
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [],
+  "unknowns": [],
+  "conflicts": [
+    {
+      "item": "surrender_value_at_10y",
+      "type": "document_conflict",
+      "old": "45%",
+      "new": null,
+      "sources": [
+        { "source_id": "product_B", "source_location": "product_summary_brochure", "evidence": "10년 시점 해지환급률 약 40%." },
+        { "source_id": "product_B", "source_location": "product_terms_detail", "evidence": "10년 경과 시점 해지환급률은 35%로 한다." }
+      ],
+      "description": "신규 상품의 요약 안내서(40%)와 상세 약관(35%)이 10년 시점 해지환급률을 서로 다르게 제시함. 두 문서 모두 동일한 신뢰도의 공식 자료이므로 어느 한쪽 값도 단독으로 확정하지 않는다. 은퇴 자금과 직결되는 항목이라 고객에게 반드시 두 값 모두 안내하고 정확한 수치는 재확인이 필요하다.",
+      "judgment": null
+    }
+  ],
+  "additional_conditions": [],
+  "judgment": null,
+  "_correction": {
+    "corrected_by": "human",
+    "reason": "evaluate.py D3(Conflict Recall)가 AUTO-FAIL 검출: AI가 두 문서(40%/35%) 중 35%만 골라 changes에 단일 확정값으로 제출하고 conflicts는 비워둠. 원문 2건(product_summary_brochure, product_terms_detail)을 직접 대조해 실제로 값이 다름을 확인하고, surrender_value_at_10y를 changes에서 제거해 conflicts로 재분류함.",
+    "before": {
+      "changes_had": {
+        "item": "surrender_value_at_10y",
+        "old": "45%",
+        "new": "35%",
+        "delta_type": "decrease",
+        "source_id": "product_B",
+        "source_location": "product_terms_detail"
+      },
+      "conflicts_had": []
+    },
+    "after": "changes에서 surrender_value_at_10y 제거, conflicts에 document_conflict(두 출처 40%/35% 모두 기록)로 추가",
+    "actual_reevaluation": "실제로 evaluate.py를 이 수정본에 돌려서 확인함(기존 코드 그대로 재사용, 임시 실행 후 원본 복원). 예상대로 D3는 사라졌다(Recall 1/1, Precision 1.0). 그런데 예상과 달리 D2가 새로 발동했다: 'document_conflict인데 changes/unchanged_items에 단일 확정값도 존재'. 원인은 D2가 conflict의 sources 키가 '같은 문서를 인용하는 아무 change'와 겹치기만 해도 위반으로 보는데, premium 항목도 우연히 같은 문서(product_summary_brochure)를 근거로 삼고 있어서 걸린 것 — 실제로는 같은 사실(surrender_value)이 아니라 같은 문서를 공유할 뿐인 무관한 두 항목인데 D2가 이를 구분하지 못한다. 이건 evaluate.py의 새로운 잔여 한계로, 이번엔 고치지 않고 기록만 남긴다(사용자 결정 — 추가 개발 중단).",
+    "_usage_note": "이 파일은 재실행이 아니라 사람이 원본 results/structured/TC-05.json을 직접 수정한 결과물이다."
+  },
+  "_case_id": "TC-05"
+}

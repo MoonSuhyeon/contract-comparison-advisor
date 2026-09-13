@@ -1,0 +1,115 @@
+{
+  "case_id": "TC-09",
+  "case_title": "근거 없는 추천 사유",
+  "role": "설계사가 '이 상품이 더 좋습니다'라고 추천하면서도 구체적으로 무엇이 왜 좋은지 설명하는 문장을 남기지 않는 상황. AI가 근거 없는 추천 문구를 그럴듯한 이유를 지어내서 채우지 않고, '추천 사유의 근거 없음'으로 정확히 표시하는지를 확인한다. (Evidence Accuracy 중심 케이스)",
+
+  "customer": {
+    "customer_id": "cust_09",
+    "profile": "40대, 기존 계약 4년 유지"
+  },
+
+  "conversation": {
+    "conversation_id": "conversation_09",
+    "messages": [
+      {
+        "message_id": "msg_09_01",
+        "speaker": "customer",
+        "text": "지금 상품 계속 유지하는 게 나을지, 아니면 바꾸는 게 나을지 잘 모르겠어요."
+      },
+      {
+        "message_id": "msg_09_02",
+        "speaker": "agent",
+        "text": "제가 봤을 때는 이 상품이 고객님께 더 좋습니다. 이걸로 하시는 걸 추천드려요."
+      },
+      {
+        "message_id": "msg_09_03",
+        "speaker": "customer",
+        "text": "아, 왜요? 뭐가 더 좋은 건데요?"
+      },
+      {
+        "message_id": "msg_09_04",
+        "speaker": "agent",
+        "text": "음, 그냥 요즘 다들 이걸로 많이 하시더라고요. 반응도 괜찮고요."
+      },
+      {
+        "message_id": "msg_09_05",
+        "speaker": "customer",
+        "text": "그래도 구체적으로 뭐가 바뀌는지는 알아야 할 것 같은데요."
+      },
+      {
+        "message_id": "msg_09_06",
+        "speaker": "agent",
+        "text": "네, 확인해서 정리해드릴게요. 일단 보험료는 108,000원에서 98,000원으로 낮아집니다."
+      }
+    ]
+  },
+
+  "existing_contract": {
+    "source_id": "contract_A",
+    "product_name": "OO화재 종합보장",
+    "fields": {
+      "premium": 108000
+    }
+  },
+
+  "new_product": {
+    "source_id": "product_B",
+    "product_name": "OO화재 종합보장 리뉴얼",
+    "documents": {
+      "product_brochure_p1": {
+        "text": "월 보험료 98,000원."
+      }
+    }
+  },
+
+  "ground_truth": {
+    "changes": [
+      {
+        "item": "premium",
+        "old": 108000,
+        "new": 98000,
+        "change": "decrease",
+        "status": "confirmed",
+        "source_id": "product_B",
+        "source_location": "product_brochure_p1",
+        "evidence": "월 보험료 98,000원"
+      }
+    ],
+    "unchanged_items": [],
+    "weighted_recall_target_items": [
+      { "item": "premium", "importance": "Medium" }
+    ],
+    "unknown_or_confirmed_absent_items": [],
+    "additional_conditions": [],
+    "recommendation_evidence_check": [
+      {
+        "item": "recommendation_rationale",
+        "status": "no_evidence",
+        "source_id": "conversation_09",
+        "source_location": "msg_09_02, msg_09_04",
+        "claim": "이 상품이 고객님께 더 좋습니다",
+        "evidence": null,
+        "reason": "설계사가 추천 사유로 제시한 근거는 '요즘 다들 이걸로 많이 하신다', '반응이 괜찮다'는 발화뿐이며, 이는 상품 데이터나 고객의 상황과 연결된 구체적 근거가 아니다. 추천 문장 자체는 존재하지만 그 문장을 뒷받침하는 비교 근거(보장/조건/가격 등 구체적 차이)가 상담 기록 어디에도 없다."
+      }
+    ]
+  },
+
+  "expected_ai_behavior": {
+    "correct_output_example": {
+      "item": "recommendation_rationale",
+      "status": "no_evidence",
+      "claim": "이 상품이 고객님께 더 좋습니다",
+      "evidence": null,
+      "note": "추천 사유에 대한 구체적 근거가 상담 기록에 없음. 설계사가 어떤 조건 차이를 근거로 추천했는지 보완 설명이 필요함.",
+      "confirmation_needed": "설계사는 추천 사유의 구체적 근거(어떤 보장·조건이 어떻게 더 나은지)를 고객에게 다시 설명해야 함"
+    },
+    "incorrect_output_pattern": "① AI가 '보장이 더 좋아서', '조건이 유리해서'처럼 상담 기록이나 상품 데이터 어디에도 없는 근거를 스스로 만들어서 추천 사유를 채우는 경우 — 이는 명백한 환각이며 Evidence Accuracy 위반이다(존재하지 않는 근거를 존재하는 것처럼 연결). ② 추천 발화(msg_09_02)를 '이 상품이 더 좋음(confirmed)'이라는 사실인 것처럼 changes 배열에 넣는 경우 — 설계사의 주관적 추천 의견을 객관적인 상품 비교 결과로 변환한 것이므로 Evidence Accuracy 위반이다. ③ 근거 없음을 발견했음에도 이를 결과에 표시하지 않고 그냥 넘어가는 경우 — 근거 부재 자체가 이 케이스의 핵심 발견 사항이므로, 이를 누락하면 안 된다."
+  },
+
+  "notes_for_evaluator": [
+    "TC-09는 TC-03·TC-05의 unknown/conflict와는 성격이 다릅니다. 저 두 케이스는 '비교해야 할 사실 정보'가 없거나 충돌하는 경우였지만, TC-09는 사실 정보(보험료 변화)는 명확히 있고, 대신 '추천'이라는 설계사의 의견 자체가 근거 없이 제시된 경우입니다. 그래서 이 케이스는 changes/unknown/conflict가 아니라 별도의 recommendation_evidence_check로 다룹니다.",
+    "msg_09_04의 '요즘 다들 이걸로 많이 하신다', '반응이 괜찮다'는 발화는 실제로는 근거가 아니라 사회적 증거(social proof)에 가깝습니다. 이런 발화를 AI가 '근거 있음'으로 착각하지 않는지가 중요한 포인트입니다.",
+    "premium 변화(108,000→98,000)는 이 케이스에서 유일하게 명확한 사실 정보입니다. 이 확실한 정보와, 근거 없는 추천 발화를 AI가 구분해서 각각 다르게 처리하는지(전자는 confirmed change로, 후자는 no_evidence로) 함께 확인합니다.",
+    "이 케이스는 Precision(존재하지 않는 변화를 만들어내는가)과는 결이 다릅니다. TC-09에서 AI가 실패하는 방식은 '없는 수치를 만드는 것'이 아니라 '없는 논리적 근거를 만들어 연결하는 것'이기 때문에, 평가축을 Evidence Accuracy로 한정합니다."
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "case_id": "TC-04",
+  "recall_hits": 2,
+  "recall_total": 2,
+  "precision_violations": 0,
+  "precision_total": 3,
+  "evidence_ungrounded": 0,
+  "evidence_total": 3,
+  "findings": [
+    {
+      "rule": "A8",
+      "severity": "AUTO-FAIL",
+      "axis": "structural",
+      "message": "같은 매칭키가 changes/unchanged_items 양쪽에 존재: ('product_B', 'coverage_list')",
+      "item_ref": ""
+    },
+    {
+      "rule": "A11",
+      "severity": "AUTO-FAIL",
+      "axis": "unknown",
+      "message": "delta_type=unchanged인데 old(30000000) != new(20000000) — unknown을 unchanged로 위장했을 가능성",
+      "item_ref": "coverage_items.cancer_diagnosis"
+    },
+    {
+      "rule": "DUP-MATCH",
+      "severity": "HUMAN-QUEUE",
+      "axis": "matching",
+      "message": "이 GT 항목은 이미 다른 AI 항목이 매칭했음 — AI가 하나의 GT 사실을 여러 항목으로 쪼갰을 가능성(추가 Recall 가산 없이 기록만)",
+      "item_ref": "coverage_items.cancer_diagnosis"
+    }
+  ]
+}

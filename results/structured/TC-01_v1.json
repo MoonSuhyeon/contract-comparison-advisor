@@ -1,0 +1,108 @@
+{
+  "customer_needs": [
+    {
+      "need_id": "need_01",
+      "need_summary": "보험료를 줄이는 방법을 원함",
+      "source_message_ids": [
+        "msg_01_01",
+        "msg_01_04"
+      ],
+      "evidence": [
+        "보험료가 너무 부담돼서요.",
+        "월 110,000원으로 조정됩니다."
+      ]
+    },
+    {
+      "need_id": "need_02",
+      "need_summary": "보장 내용에 대한 정보 필요",
+      "source_message_ids": [
+        "msg_01_05",
+        "msg_01_08"
+      ],
+      "evidence": [
+        "근데 보장 내용은 똑같은 거예요?",
+        "정확하게 정리해서 알려주실 수 있어요?"
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "item": "premium",
+      "old": 150000,
+      "new": 110000,
+      "change": "decrease",
+      "status": "confirmed",
+      "evidence": "월 보험료 110,000원",
+      "source_id": "product_B",
+      "source_location": "product_brochure_p3",
+      "linked_need_id": "need_01",
+      "note": null,
+      "judgment": null
+    },
+    {
+      "item": "coverage_items.cancer_diagnosis",
+      "old": 30000000,
+      "new": 30000000,
+      "change": "unchanged",
+      "status": "confirmed",
+      "evidence": "암 진단비 3,000만원 (최초 1회 지급).",
+      "source_id": "product_B",
+      "source_location": "coverage_list",
+      "linked_need_id": "need_02",
+      "note": null,
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [
+    {
+      "item": "coverage_items.cerebro_cardiac_diagnosis",
+      "old": 15000000,
+      "new": null,
+      "change": "removed",
+      "status": "confirmed",
+      "evidence": "뇌혈관질환·급성심근경색 진단비 특약: 목록에 없음.",
+      "source_id": "product_B",
+      "source_location": "coverage_list",
+      "linked_need_id": "need_02",
+      "note": null,
+      "judgment": null
+    },
+    {
+      "item": "renewal_period",
+      "old": "10년",
+      "new": "5년",
+      "change": "shortened",
+      "status": "confirmed",
+      "evidence": "갱신주기 5년.",
+      "source_id": "product_B",
+      "source_location": "renewal_clause",
+      "linked_need_id": null,
+      "note": null,
+      "judgment": null
+    },
+    {
+      "item": "surrender_value_at_10y",
+      "old": "62%",
+      "new": "31%",
+      "change": "decrease",
+      "status": "confirmed",
+      "evidence": "10년납 기준 해지환급률 31%.",
+      "source_id": "product_B",
+      "source_location": "surrender_value_table",
+      "linked_need_id": null,
+      "note": null,
+      "judgment": null
+    }
+  ],
+  "unknowns": [],
+  "conflicts": [],
+  "additional_conditions": [],
+  "judgment": null,
+  "_usage": {
+    "model": "gpt-4o-mini",
+    "prompt_tokens": 4758,
+    "completion_tokens": 539,
+    "attempts": 1
+  },
+  "_case_id": "TC-01"
+}
