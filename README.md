@@ -84,21 +84,48 @@ done
 | 평가기(`evaluate.py`) 자체를 개발하며 발견한 버그·한계 전체 | `results/evaluator_validation_log.md` |
 | Human Review로 사람이 직접 수정한 사례(TC-05) | `results/corrected/TC-05.json` |
 
-## 폴더 구조
+## 아키텍처
 
 ```
-C6_문제정의_최종.md         문제 정의 + 규제 근거
-C6_설계_확정본.md            테스트 설계·평가 규칙 확정 이력 (발견 → 수정 → 재확정 기록)
-06_종합정리.md                최종 정리 (5개 항목)
-prompt/system_prompt.md      구조화 파이프라인 시스템 프롬프트
-schema/output_schema.json    공통 Output JSON Schema
-schema/validation_rules.md   자동 평가 규칙 (M1~M3 매칭, A~E 검증)
-src/llm_extractor.py         구조화 파이프라인 실행
-src/naive_baseline.py        naive baseline 실행
-src/evaluate.py              GT 대조 자동 평가기
-data/tc01~15_data.json       15개 테스트 케이스 (시나리오 + Ground Truth)
-results/                     실행 결과, 평가 로그, Human Review 시연
+                        data/tc01~15_data.json
+                     (계약 시나리오 + Ground Truth)
+                                 │
+                 ┌───────────────┴───────────────┐
+                 ▼                               ▼
+   prompt/system_prompt.md            (naive 프롬프트 — 스키마 없음)
+   schema/output_schema.json                     │
+                 │                               │
+                 ▼                               ▼
+     src/llm_extractor.py                src/naive_baseline.py
+   (function calling +                    (자유 텍스트 응답)
+    jsonschema 검증 + 재시도)
+                 │                               │
+                 ▼                               ▼
+   results/structured/TC-XX.json      results/baseline/TC-XX.txt
+                 │                               │
+                 ▼                               ▼
+       src/evaluate.py  ◄──────┐          사람이 직접 6개 기준으로
+   (GT와 자동 대조 채점)        │           원문 대조 (자동 채점 없음)
+                 │              │                │
+                 │      schema/validation_rules.md          │
+                 │      (매칭 M1~M3, 검증 규칙 A~E)          │
+                 ▼                                          ▼
+   results/metadata/TC-XX_eval.json      results/naive_baseline_human_review.md
+   (Recall/Precision/Evidence/
+    Unknown/Conflict/Boundary)
+                 │
+        AUTO-FAIL 또는 HUMAN-QUEUE
+                 │
+                 ▼
+           Human Review
+                 │
+                 ▼
+     results/corrected/TC-XX.json
 ```
+
+**참고 문서**: 문제 정의·규제 근거는 [`C6_문제정의_최종.md`](C6_문제정의_최종.md), 테스트
+설계와 평가 규칙이 확정되기까지의 발견→수정 이력은 [`C6_설계_확정본.md`](C6_설계_확정본.md),
+최종 정리은 [`06_종합정리.md`](06_종합정리.md).
 
 ## 스코프와 한계 (숨기지 않음)
 
