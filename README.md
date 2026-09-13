@@ -38,24 +38,68 @@ conflict를 종종 놓쳤지만, **그 실패를 평가기가 자동으로 감�
 
 ## 실행 방법
 
+### 0. 준비물
+- Python 3.10 이상
+- OpenAI API 키 (구조화 파이프라인·naive baseline 모두 `gpt-4o-mini` 사용, `.env`로만 주입 — 키를 코드나 커밋에 직접 넣지 않음)
+
+### 1. 설치
 ```bash
+git clone https://github.com/MoonSuhyeon/contract-comparison-advisor.git
+cd contract-comparison-advisor
+
 python -m venv .venv
 .venv/Scripts/python -m pip install -r requirements.txt   # Windows
-# source .venv/bin/activate && pip install -r requirements.txt  # macOS/Linux
+# source .venv/bin/activate && pip install -r requirements.txt   # macOS/Linux
 
-cp .env.example .env   # OPENAI_API_KEY 채우기
-
-.venv/Scripts/python src/llm_extractor.py TC-01      # 구조화 파이프라인
-.venv/Scripts/python src/naive_baseline.py TC-01     # naive baseline
-.venv/Scripts/python src/evaluate.py TC-01           # 구조화 결과 자동 채점
+cp .env.example .env
+# .env를 열어서 OPENAI_API_KEY=sk-... 채우기
 ```
+
+### 2. 실행 가능한 테스트 케이스
+전체 15개(`data/tc01~15_data.json`) 중 실제로 실행·평가까지 완료한 건 **7개**다:
+`TC-01 TC-03 TC-04 TC-05 TC-10 TC-11 TC-15` (나머지 8개는 설계·GT만 완성된 상태 — 이유는
+[`06_종합정리.md`](06_종합정리.md) 5번 참고).
+
+### 3. 케이스 1개 실행 (예: TC-01)
+```bash
+# 구조화 파이프라인: 시스템 프롬프트 + JSON 스키마 강제 + 재시도
+.venv/Scripts/python src/llm_extractor.py TC-01
+# -> results/structured/TC-01.json
+
+# naive baseline: 스키마 없이 자유 텍스트 (비교 기준)
+.venv/Scripts/python src/naive_baseline.py TC-01
+# -> results/baseline/TC-01.txt
+
+# 구조화 결과를 Ground Truth와 자동 대조 채점 (Recall/Precision/Evidence/Unknown/Conflict/Boundary)
+.venv/Scripts/python src/evaluate.py TC-01
+# -> 콘솔 출력 + results/metadata/TC-01_eval.json
+```
+
+### 4. 실행 완료된 7건 한 번에 재현
+```bash
+for tc in TC-01 TC-03 TC-04 TC-05 TC-10 TC-11 TC-15; do
+  .venv/Scripts/python src/llm_extractor.py "$tc"
+  .venv/Scripts/python src/naive_baseline.py "$tc"
+  .venv/Scripts/python src/evaluate.py "$tc"
+done
+```
+(bash 기준. Windows PowerShell에서는 `foreach ($tc in "TC-01","TC-03","TC-04","TC-05","TC-10","TC-11","TC-15") { ... }` 형태로 바꿔서 실행)
+
+### 5. 결과 확인
+| 무엇을 보려면 | 어디를 보면 되는가 |
+|---|---|
+| 구조화 파이프라인이 실제로 낸 JSON | `results/structured/TC-XX.json` |
+| naive baseline이 낸 자유 텍스트 | `results/baseline/TC-XX.txt` |
+| 자동 채점 결과(Recall/Precision 등 수치 + 위반 목록) | `results/metadata/TC-XX_eval.json` |
+| naive 7건을 사람이 직접 대조한 정성 평가 | `results/naive_baseline_human_review.md` |
+| 평가기(`evaluate.py`) 자체를 개발하며 발견한 버그·한계 전체 | `results/evaluator_validation_log.md` |
+| Human Review로 사람이 직접 수정한 사례(TC-05) | `results/corrected/TC-05.json` |
 
 ## 폴더 구조
 
 ```
 C6_문제정의_최종.md         문제 정의 + 규제 근거
 C6_설계_확정본.md            테스트 설계·평가 규칙 확정 이력 (발견 → 수정 → 재확정 기록)
-PLAN.md                     Phase별 작업 계획과 진행 상황
 06_종합정리.md                최종 정리 (5개 항목)
 prompt/system_prompt.md      구조화 파이프라인 시스템 프롬프트
 schema/output_schema.json    공통 Output JSON Schema
