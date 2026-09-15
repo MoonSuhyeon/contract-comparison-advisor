@@ -1,0 +1,6 @@
+{
+  "case_id": "TC-04",
+  "method": "regex(%/원 수치 추출) + 문장 단위 한글 2-gram Jaccard 유사도, GT/LLM 미사용",
+  "candidates_found": 0,
+  "candidates": []
+}
