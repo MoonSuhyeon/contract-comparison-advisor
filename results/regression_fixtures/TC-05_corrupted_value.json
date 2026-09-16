@@ -1,0 +1,46 @@
+{
+  "_fixture_note": "results/corrected/TC-05.json을 기반으로 premium.new만 90000 -> 999999로 의도적으로 손상시킨 회귀 테스트용 fixture. evidence 문장('월 보험료 90,000원.')은 그대로 둠 — '인용문이 원문에 존재한다'(B1)는 여전히 참이지만 '선언한 값이 그 문장과 일치한다'(B5)는 거짓인 상황을 재현하기 위함.",
+  "customer_needs": [
+    {
+      "need_id": "need_01",
+      "need_summary": "해지환급률에 대한 정확한 정보",
+      "source_message_ids": ["msg_05_03", "msg_05_05"],
+      "evidence": [
+        "그럼 해지환급률은요?",
+        "확실한 거죠? 이게 은퇴 자금이랑 관련돼서 정확하게 알아야 할 것 같아서요."
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "item": "premium",
+      "old": 100000,
+      "new": 999999,
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "월 보험료 90,000원.",
+      "source_id": "product_B",
+      "source_location": "product_summary_brochure",
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [],
+  "unknowns": [],
+  "conflicts": [
+    {
+      "item": "surrender_value_at_10y",
+      "type": "document_conflict",
+      "old": "45%",
+      "new": null,
+      "sources": [
+        { "source_id": "product_B", "source_location": "product_summary_brochure", "evidence": "10년 시점 해지환급률 약 40%." },
+        { "source_id": "product_B", "source_location": "product_terms_detail", "evidence": "10년 경과 시점 해지환급률은 35%로 한다." }
+      ],
+      "description": "신규 상품의 요약 안내서(40%)와 상세 약관(35%)이 10년 시점 해지환급률을 서로 다르게 제시함. 두 문서 모두 동일한 신뢰도의 공식 자료이므로 어느 한쪽 값도 단독으로 확정하지 않는다.",
+      "judgment": null
+    }
+  ],
+  "additional_conditions": [],
+  "judgment": null,
+  "_case_id": "TC-05"
+}

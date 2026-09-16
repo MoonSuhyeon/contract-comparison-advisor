@@ -171,3 +171,47 @@ N=7 전체 실행 완료. 평가기 버그 7건 발견·수정(인코딩 크래�
 케이스를 실제로 돌리지 않았으면 하나도 못 찾았을 것들"이라는 점). 실제 AI 오류 6개 유형 확인
 (배열 라우팅, 자기모순, conflict 감지 실패 2회 재현, unchanged 위장, 항목 분할). TC-10은
 클린 패스로 환각 방지 설계가 실제로 작동함을 보여줌. Phase 3(baseline)로 진행 가능.
+
+## Phase 8 — 값-근거 일치(B5) 회귀 테스트 + 재현성 수정 (2026-09-16)
+
+회귀 테스트로 교정본(`results/corrected/TC-05.json`)의 premium `new`값을 90,000→999,999로
+의도적으로 바꾸고 evidence 문장("월 보험료 90,000원.")은 그대로 둔 뒤 evaluate.py를 돌려봤는데,
+이 값 위조를 잡아내지 못한다는 걸 확인했다.
+
+**원인**: B1(`ground_status`)은 "evidence 문장이 원문에 실존하는가"만 검사한다. "선언한
+old/new 값이 그 evidence 문장이 실제로 말하는 수치와 일치하는가"는 완전히 다른 검사인데,
+이 검사가 아예 없었다. 문장이 진짜인 것과, 그 문장으로 뒷받침한다고 주장하는 값이 실제로
+맞는 것은 서로 다른 주장이다.
+
+**수정**: `extract_grounded_numbers()`(evidence에서 %/원/만원 수치를 추출, "만원"은 ×10000
+환산)와 `value_to_number_str()`(old/new를 비교 가능한 정규화 숫자 문자열로 변환)을 추가하고,
+`value_evidence_mismatch()`로 "evidence에 수치가 있는데 old/new 어느 쪽과도 안 맞으면 위반"인
+**B5** 규칙을 신설했다. evidence에 수치가 아예 없는 서술형 항목(예: "목록에 없음")은 검사
+대상에서 제외한다 — 이 규칙은 값 위조만 잡지, 서술형 evidence의 진위는 B1이 담당한다.
+
+**회귀 검증 (fixture 3종, 수정 전/후 대조)**:
+
+| Fixture | 수정 전 (커밋 `016fa15` 시점 evaluate.py) | 수정 후 (B5 포함) |
+|---|---|---|
+| 정상 — `results/structured/TC-01.json` | AUTO-FAIL 1건(B4, 기존 이슈) | 동일 — B5로 인한 신규 오탐 없음 |
+| 실제 conflict — `results/corrected/TC-05.json` | (아래 "재현성 버그" 참고) | AUTO-FAIL 1건(D2, 기존 잔여 한계 — 그대로 유지, 이번엔 안 건드림) |
+| 값 위조 — `results/regression_fixtures/TC-05_corrupted_value.json`(premium.new=999999, evidence는 그대로) | `ground_status`가 `grounded` 반환 → **위조 미검출** | **B5가 AUTO-FAIL로 정확히 검출**: "evidence 문장은 실존하지만 그 문장이 말하는 수치와 선언한 old/new(100000->999999)가 일치하지 않음" |
+
+N=7 전체(TC-01,03,04,05,10,11,15)를 재실행해 B5가 기존 통과 케이스에 새 오탐을 만들지 않음을
+확인함(Precision 전부 기존과 동일하게 1.0 유지, `git diff --stat results/metadata/`로 검증).
+
+**부수적으로 발견한 진짜 재현성 버그**: `results/metadata/TC-05_eval.json`을 다시 만들어보니
+기존 저장 결과가 실제로는 원본이 아니라 **교정본을 평가한 결과(D2)**였다. 예전 Human Review
+검증 때 원본 자리에 교정본을 임시로 바꿔치기해서 평가한 뒤 "코드는 원복"했지만, **평가 결과
+파일은 원복하지 않았던 것** — 그래서 한동안 'TC-05 원본 평가'라는 이름의 파일이 실제로는
+교정본의 평가였다. `evaluate.py`에 `ai_output_path` 인자를 추가해 임의 파일을 직접 지정해
+평가할 수 있게 고치고(더 이상 임시 바꿔치기 불필요), 출력 파일명도 상위 폴더명을 붙여 구분되게
+했다:
+- `results/metadata/TC-05_eval.json` — 원본(`results/structured/TC-05.json`) 재평가 →
+  이제 정확히 D3(Conflict Recall 위반, AI가 conflict를 놓치고 35%로 임의 확정)가 나옴
+- `results/metadata/corrected_TC-05_eval.json` — 교정본 재평가 → D2(기존 잔여 한계)
+- `results/metadata/regression_fixtures_TC-05_corrupted_value_eval.json` — 값 위조 fixture → B5
+
+**남은 한계**: B5는 %/원/만원 수치만 다룬다. 기간(개월/회) 등 다른 단위나, 두 자리 이상의 단위
+혼용(예: "1,200만원 → 12,000,000원"을 서로 다른 표기로 같이 쓰는 경우)에 대한 강건성은 N=7
+범위 안에서만 확인했다 — 확장은 필요해질 때 하기로 한다(지금 무리하게 일반화하지 않음).

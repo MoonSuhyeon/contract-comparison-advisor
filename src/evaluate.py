@@ -61,8 +61,11 @@ def load_case(case_id: str) -> dict:
     return json.loads((BASE / "data" / fname).read_text(encoding="utf-8"))
 
 
-def load_ai_output(case_id: str) -> dict:
-    return json.loads((BASE / "results" / "structured" / f"{case_id}.json").read_text(encoding="utf-8"))
+def load_ai_output(case_id: str, ai_output_path: Optional[str] = None) -> dict:
+    """ai_output_path를 주면 그 파일을 그대로 읽는다(임시로 results/structured/에 바꿔치기하지
+    않아도 원본/교정본 등 임의 파일을 재현 가능하게 평가하기 위함)."""
+    path = Path(ai_output_path) if ai_output_path else BASE / "results" / "structured" / f"{case_id}.json"
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 # ---------------------------------------------------------------- §0 매칭 키
@@ -174,6 +177,54 @@ def ground_status(evidence: Optional[str], claimed_source_id: Optional[str], tex
     return "not_found"
 
 
+NUMBER_WITH_UNIT = re.compile(r"(\d[\d,]*(?:\.\d+)?)\s*(만원|원|%)?")
+
+
+def extract_grounded_numbers(text: Optional[str]) -> set[str]:
+    """evidence 문장에서 수치를 뽑아 정규화한 집합을 만든다. '만원'은 10000을 곱해 원 단위로
+    환산한다(2,000만원 -> 20000000) — 안 하면 GT의 raw 정수값(20000000)과 절대 안 맞아서
+    맞는 항목까지 B5로 오탐하게 된다."""
+    if not text:
+        return set()
+    out = set()
+    for digits, unit in NUMBER_WITH_UNIT.findall(text):
+        if not digits:
+            continue
+        num = float(digits.replace(",", ""))
+        if unit == "만원":
+            num *= 10000
+        out.add(str(int(num)) if num == int(num) else str(num))
+    return out
+
+
+def value_to_number_str(value) -> Optional[str]:
+    """change의 old/new 값을 evidence 수치 집합과 비교 가능한 정규화 문자열로 바꾼다."""
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return str(int(value)) if value == int(value) else str(value)
+    if isinstance(value, str):
+        m = re.match(r"\s*(\d[\d,]*(?:\.\d+)?)", value)
+        if m:
+            num = float(m.group(1).replace(",", ""))
+            return str(int(num)) if num == int(num) else str(num)
+    return None
+
+
+def value_evidence_mismatch(entry: dict, evidence: str) -> bool:
+    """B5: evidence 문장에 수치가 하나라도 있는데, 선언한 old/new 중 어느 쪽도 그 문장이 말하는
+    수치와 일치하지 않으면 위반. evidence에 수치가 아예 없으면(서술형 evidence) 검사 대상이
+    아니다 — 이 규칙은 '값 위조'만 잡지, 서술형 evidence의 진위는 B1이 이미 담당한다."""
+    grounded_numbers = extract_grounded_numbers(evidence)
+    if not grounded_numbers:
+        return False
+    candidates = {value_to_number_str(entry.get("old")), value_to_number_str(entry.get("new"))}
+    candidates.discard(None)
+    if not candidates:
+        return False
+    return grounded_numbers.isdisjoint(candidates)
+
+
 def within_threshold(old, new, item_hint: str) -> bool:
     """B3/B4용: old->new 차이가 유의미성 기준 '미만'이면 True (=무의미한 변화)."""
     try:
@@ -232,10 +283,10 @@ def check_structural(ai: dict, report: Report):
 
 # ---------------------------------------------------------------- B/C/D. 매칭 기반 검사
 
-def evaluate_case(case_id: str) -> Report:
+def evaluate_case(case_id: str, ai_output_path: Optional[str] = None) -> Report:
     case = load_case(case_id)
     gt = case["ground_truth"]
-    ai = load_ai_output(case_id)
+    ai = load_ai_output(case_id, ai_output_path)
     report = Report()
 
     check_structural(ai, report)
@@ -261,6 +312,12 @@ def evaluate_case(case_id: str) -> Report:
                                     f"evidence 텍스트는 실존하나 명시한 source_id({e.get('source_id')})가 아닌 다른 출처에서 발견됨 — 출처 오귀속 의심",
                                     e.get("item", "")))
                 # 텍스트 자체는 진짜이므로 매칭/임계값 평가는 계속 진행한다.
+
+            if value_evidence_mismatch(e, e.get("evidence")):
+                report.add(Finding("B5", "AUTO-FAIL", "precision",
+                                    f"evidence 문장은 실존하지만 그 문장이 말하는 수치와 선언한 old/new({e.get('old')}->{e.get('new')})가 일치하지 않음 — "
+                                    f"'문장이 진짜다'와 '주장한 값이 그 문장에 부합한다'는 서로 다른 검증이다",
+                                    e.get("item", "")))
 
             match, tier = find_match_tiered(e, gt_index, gt, bucket_name)
             if tier == "M2":
@@ -443,10 +500,20 @@ def print_report(case_id: str, report: Report):
 
 if __name__ == "__main__":
     case_id = sys.argv[1] if len(sys.argv) > 1 else "TC-01"
-    rep = evaluate_case(case_id)
+    ai_output_path = sys.argv[2] if len(sys.argv) > 2 else None
+    rep = evaluate_case(case_id, ai_output_path)
     print_report(case_id, rep)
 
-    out_path = BASE / "results" / "metadata" / f"{case_id}_eval.json"
+    # ai_output_path를 명시하면(예: 교정본, 회귀 fixture) 결과 파일명에 그 파일의 상위 폴더명+stem을
+    # 반영해 원본 평가 결과를 덮어쓰지 않는다 — 재현성을 위한 것. parent 폴더명이 없으면
+    # (=results/structured/, 기본 위치) 그냥 case_id를 쓴다 — TC-05.json이 results/corrected/와
+    # results/structured/ 양쪽에 있어서 stem만 쓰면 같은 파일명으로 충돌했던 실제 버그를 수정.
+    if ai_output_path:
+        p = Path(ai_output_path)
+        out_stem = p.stem if p.parent.name == "structured" else f"{p.parent.name}_{p.stem}"
+    else:
+        out_stem = case_id
+    out_path = BASE / "results" / "metadata" / f"{out_stem}_eval.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(
         json.dumps(

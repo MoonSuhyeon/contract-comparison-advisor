@@ -10,6 +10,7 @@ import json
 import os
 import re
 import sys
+import time
 from pathlib import Path
 
 import jsonschema
@@ -93,6 +94,11 @@ def run_case(case_id: str, max_retries: int = 2) -> dict:
 
     last_errors = None
     last_output = None
+    # 실패한 재시도도 포함해 전체 토큰/시간을 실측한다(이전에는 마지막 성공
+    # 시도의 토큰만 기록해서 재시도 비용이 누락됐다).
+    total_prompt_tokens = 0
+    total_completion_tokens = 0
+    start = time.monotonic()
     for attempt in range(1, max_retries + 2):  # 최초 1회 + 재시도 max_retries회
         response = client.chat.completions.create(
             model=model,
@@ -100,6 +106,9 @@ def run_case(case_id: str, max_retries: int = 2) -> dict:
             tools=[tool],
             tool_choice={"type": "function", "function": {"name": schema_doc["name"]}},
         )
+        if response.usage:
+            total_prompt_tokens += response.usage.prompt_tokens
+            total_completion_tokens += response.usage.completion_tokens
         message = response.choices[0].message
         if not message.tool_calls:
             raise RuntimeError(f"{case_id}: 모델이 함수 호출을 반환하지 않음 (attempt {attempt}) — {message.content}")
@@ -125,8 +134,10 @@ def run_case(case_id: str, max_retries: int = 2) -> dict:
         if not errors:
             output["_usage"] = {
                 "model": model,
-                "prompt_tokens": response.usage.prompt_tokens if response.usage else None,
-                "completion_tokens": response.usage.completion_tokens if response.usage else None,
+                "prompt_tokens": total_prompt_tokens,
+                "completion_tokens": total_completion_tokens,
+                "total_tokens": total_prompt_tokens + total_completion_tokens,
+                "elapsed_seconds": round(time.monotonic() - start, 2),
                 "attempts": attempt,
             }
             output["_case_id"] = case_id
@@ -150,7 +161,14 @@ def run_case(case_id: str, max_retries: int = 2) -> dict:
     output = last_output or {}
     output["_schema_valid"] = False
     output["_validation_errors"] = last_errors
-    output["_usage"] = {"model": model, "attempts": max_retries + 1}
+    output["_usage"] = {
+        "model": model,
+        "prompt_tokens": total_prompt_tokens,
+        "completion_tokens": total_completion_tokens,
+        "total_tokens": total_prompt_tokens + total_completion_tokens,
+        "elapsed_seconds": round(time.monotonic() - start, 2),
+        "attempts": max_retries + 1,
+    }
     output["_case_id"] = case_id
     return output
 
@@ -166,8 +184,9 @@ if __name__ == "__main__":
     out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
 
     usage = result.get("_usage", {})
-    print(f"성공 (시도 {usage.get('attempts')}회) -> {out_path}")
-    print(f"토큰: prompt={usage.get('prompt_tokens')}, completion={usage.get('completion_tokens')}")
+    print(f"성공 (시도 {usage.get('attempts')}회, {usage.get('elapsed_seconds')}s) -> {out_path}")
+    print(f"토큰(재시도 포함 합계): prompt={usage.get('prompt_tokens')}, completion={usage.get('completion_tokens')}, "
+          f"total={usage.get('total_tokens')}")
     print(f"changes={len(result.get('changes', []))}, unchanged={len(result.get('unchanged_items', []))}, "
           f"unknowns={len(result.get('unknowns', []))}, conflicts={len(result.get('conflicts', []))}, "
           f"additional_conditions={len(result.get('additional_conditions', []))}, "

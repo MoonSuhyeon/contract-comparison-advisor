@@ -3,16 +3,23 @@
   "recall_hits": 1,
   "recall_total": 1,
   "precision_violations": 0,
-  "precision_total": 1,
+  "precision_total": 2,
   "evidence_ungrounded": 0,
-  "evidence_total": 1,
+  "evidence_total": 2,
   "findings": [
     {
-      "rule": "D2",
+      "rule": "B2",
+      "severity": "HUMAN-QUEUE",
+      "axis": "precision",
+      "message": "GT 어디에도 매칭 안 됨(M1/M2 모두 실패, evidence는 원문에 존재) — GT 누락 후보로 사람 검토 필요",
+      "item_ref": "surrender_value_at_10y"
+    },
+    {
+      "rule": "D3",
       "severity": "AUTO-FAIL",
       "axis": "conflict",
-      "message": "document_conflict인데 changes/unchanged_items에 단일 확정값도 존재",
-      "item_ref": "surrender_value_at_10y"
+      "message": "GT상 conflict인데 AI가 감지하지 못하고 한쪽 값으로 임의 확정함(Conflict Accuracy 위반)",
+      "item_ref": "surrender_value"
     }
   ]
 }
