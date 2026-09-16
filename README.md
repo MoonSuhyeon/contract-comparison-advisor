@@ -25,6 +25,13 @@ Record)은 사람이 하도록 역할을 분리했습니다. 테스트 케이스
 [`06_종합정리.md`](06_종합정리.md), 평가기 버그·한계 전체 기록은
 [`results/evaluator_validation_log.md`](results/evaluator_validation_log.md) 참고.
 
+**추가 검증**: evaluate.py의 D3는 GT(정답)가 있어야 conflict 누락을 검출할 수 있다는 한계가
+있어, GT 없이 문서 원문만으로 충돌을 독립 탐지하는 `src/conflict_detector.py`를 추가했습니다.
+또한 평가기가 "근거 문장이 원문에 있는가"는 검사해도 "선언한 값이 그 문장과 실제로 일치하는가"는
+검사하지 못하던 회귀 버그(B5)를 발견·수정했고, "지침은 같지만 자유서술" 세 번째 baseline으로
+naive/structured 차이에서 지침과 스키마가 각각 얼마나 기여했는지 분리해봤습니다. 자세한 경위는
+[`06_종합정리.md`](06_종합정리.md) 6번 항목 참고.
+
 ## 실행 방법
 
 ### 0. 준비물
@@ -74,7 +81,26 @@ done
 ```
 (bash 기준. Windows PowerShell에서는 `foreach ($tc in "TC-01","TC-03","TC-04","TC-05","TC-10","TC-11","TC-15") { ... }` 형태로 바꿔서 실행)
 
-### 5. 결과 확인
+### 5. 특정 파일을 지정해서 평가 (원본/교정본/회귀 fixture 재현)
+```bash
+.venv/Scripts/python src/evaluate.py TC-05                                              # 원본
+.venv/Scripts/python src/evaluate.py TC-05 results/corrected/TC-05.json                 # 사람이 교정한 버전
+.venv/Scripts/python src/evaluate.py TC-05 results/regression_fixtures/TC-05_corrupted_value.json  # 값 위조 회귀 fixture
+```
+
+### 6. GT 없는 Conflict 탐지 (LLM·GT 미사용)
+```bash
+.venv/Scripts/python src/conflict_detector.py TC-05
+# -> results/conflict_detection/TC-05.json
+```
+
+### 7. 세 번째 baseline (지침 동일 + 자유서술)
+```bash
+.venv/Scripts/python src/instructed_freeform_baseline.py TC-05
+# -> results/instructed_freeform/TC-05.txt
+```
+
+### 8. 결과 확인
 | 무엇을 보려면 | 어디를 보면 되는가 |
 |---|---|
 | 구조화 파이프라인이 실제로 낸 JSON | `results/structured/TC-XX.json` |
@@ -83,6 +109,8 @@ done
 | naive 7건을 사람이 직접 대조한 정성 평가 | `results/naive_baseline_human_review.md` |
 | 평가기(`evaluate.py`) 자체를 개발하며 발견한 버그·한계 전체 | `results/evaluator_validation_log.md` |
 | Human Review로 사람이 직접 수정한 사례(TC-05) | `results/corrected/TC-05.json` |
+| GT 없이 문서만으로 탐지한 conflict 후보 + Human Review | `results/conflict_detection/TC-05.json`, `results/conflict_detector_log.md` |
+| 세 번째 baseline(지침 동일+자유서술) 3방향 비교 | `results/instructed_freeform_human_review.md` |
 
 ## 폴더 구조
 
@@ -94,34 +122,46 @@ contract-comparison-advisor/
 ├── requirements.txt
 ├── .env.example
 ├── prompt/
-│   └── system_prompt.md              # 구조화 파이프라인 시스템 프롬프트
-│                                      # (Extract/Compare/Flag/Unknown/Evidence, judgment 항상 null)
+│   ├── system_prompt.md               # 구조화 파이프라인 시스템 프롬프트
+│   │                                   # (Extract/Compare/Flag/Unknown/Evidence, judgment 항상 null)
+│   └── instructed_freeform_prompt.md  # 세 번째 baseline용 — 지침은 동일, 출력만 자유서술
 ├── schema/
 │   ├── output_schema.json            # 공통 Output JSON Schema (changes/unchanged_items/
 │   │                                  #  unknowns/conflicts/additional_conditions/customer_needs)
 │   └── validation_rules.md           # 자동 평가 규칙 — 매칭 M1~M3, 검증 A~E(Precision/
 │                                      #  Unknown/Conflict/Boundary Violation)
 ├── src/
-│   ├── llm_extractor.py              # 구조화 파이프라인 실행 — function calling + jsonschema
-│   │                                  #  검증 + 재시도, 실패해도 크래시 대신 무효표시 저장
-│   ├── naive_baseline.py             # naive baseline 실행 — 스키마 없는 자유 텍스트 (비교 기준)
-│   └── evaluate.py                   # GT 대조 자동 평가기 — Recall/Precision/Evidence/
-│                                      #  Unknown/Conflict, AUTO-FAIL/HUMAN-QUEUE 판정
+│   ├── llm_extractor.py                    # 구조화 파이프라인 실행 — function calling + jsonschema
+│   │                                        #  검증 + 재시도, 실패해도 크래시 대신 무효표시 저장
+│   ├── naive_baseline.py                   # naive baseline 실행 — 스키마 없는 자유 텍스트 (비교 기준)
+│   ├── instructed_freeform_baseline.py     # 세 번째 baseline — 지침은 structured와 동일, 출력은 자유서술
+│   ├── evaluate.py                         # GT 대조 자동 평가기 — Recall/Precision/Evidence/Unknown/
+│   │                                        #  Conflict/Boundary, AUTO-FAIL/HUMAN-QUEUE 판정, B5(값-근거
+│   │                                        #  일치) 포함, 임의 파일 경로 지정 가능(원본/교정본/fixture)
+│   └── conflict_detector.py                # GT·LLM 미사용 — 문서 원문만으로 수치 충돌 독립 탐지
 ├── data/
 │   └── tc01~15_data.json             # 15개 테스트 케이스 (시나리오 + Ground Truth), 7개만 실행
 └── results/
-    ├── structured/TC-XX.json         # 구조화 파이프라인 실제 출력
-    ├── baseline/TC-XX.txt            # naive baseline 실제 출력(자유 텍스트)
-    ├── metadata/TC-XX_eval.json      # evaluate.py 채점 결과(수치 + 위반 목록)
-    ├── corrected/TC-05.json          # Human Review로 사람이 직접 수정한 사례
-    ├── naive_baseline_human_review.md  # naive 7건을 사람이 직접 6개 기준으로 대조 평가
-    ├── evaluator_validation_log.md     # evaluate.py 개발 중 발견한 버그·한계 전체 기록
-    └── tc01_iteration_log.md           # TC-01 프롬프트 v1→v2 반복 개선 기록
+    ├── structured/TC-XX.json                     # 구조화 파이프라인 실제 출력
+    ├── baseline/TC-XX.txt                        # naive baseline 실제 출력(자유 텍스트)
+    ├── instructed_freeform/TC-XX.txt             # 세 번째 baseline 실제 출력(5건)
+    ├── metadata/TC-XX_eval.json                  # evaluate.py 채점 결과(수치 + 위반 목록)
+    ├── corrected/TC-05.json                      # Human Review로 사람이 직접 수정한 사례
+    ├── regression_fixtures/TC-05_corrupted_value.json  # B5 회귀 테스트용 값 위조 fixture
+    ├── conflict_detection/TC-XX.json             # GT 없는 conflict 탐지 결과 + Human Review 기록
+    ├── naive_baseline_human_review.md            # naive 7건을 사람이 직접 6개 기준으로 대조 평가
+    ├── instructed_freeform_human_review.md       # 세 번째 baseline 5건 3방향 비교(naive/이것/structured)
+    ├── conflict_detector_log.md                  # GT 없는 conflict 탐지기 개발·검증 기록
+    ├── evaluator_validation_log.md               # evaluate.py 개발 중 발견한 버그·한계 전체 기록(B5 포함)
+    └── tc01_iteration_log.md                     # TC-01 프롬프트 v1→v2 반복 개선 기록
 ```
 
-## 스코프와 한계 
+## 스코프와 한계
 
-15개로 설계한 테스트 케이스 중 **7개만 실제 실행**했습니다. evaluate.py에는 알려진 잔여
-버그가 있고(같은 문서를 인용하는 무관한 항목을 중복 확정으로 오판하는 경우), 표현이 다르지만
-의미가 같은 경우(paraphrase)에 대한 매칭은 의도적으로 구현하지 않았습니다. 전부
-[`06_종합정리.md`](06_종합정리.md) 5번 항목과 [`results/evaluator_validation_log.md`](results/evaluator_validation_log.md)에 기록되어 있습니다.
+15개로 설계한 테스트 케이스 중 **7개만 실제 실행**했습니다(세 번째 baseline은 그중 held-out
+5건만). evaluate.py에는 알려진 잔여 버그가 있고(같은 문서를 인용하는 무관한 항목을 중복
+확정으로 오판하는 D2), 표현이 다르지만 의미가 같은 경우(paraphrase)에 대한 매칭은 의도적으로
+구현하지 않았습니다. 세 번째 baseline 비교는 5건·1회 샘플링 결과라 일반화하지 않습니다. 전부
+[`06_종합정리.md`](06_종합정리.md) 5·6번 항목과
+[`results/evaluator_validation_log.md`](results/evaluator_validation_log.md)에 기록되어
+있습니다.

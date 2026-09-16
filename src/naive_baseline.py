@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -47,24 +48,33 @@ def _get_client():
     return OpenAI(api_key=api_key)
 
 
-def run_case(case_id: str) -> str:
+def run_case(case_id: str) -> dict:
+    """토큰 사용량·처리시간을 실측 기록한다(맨 처음 실행한 7건은 이 계측이 없기 전에
+    실행돼 추정치만 남아있음 — 06_종합정리.md §4에 명시. 이 함수는 이후 실행분부터 실측한다)."""
     case = load_case(case_id)
     client = _get_client()
     model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    start = time.monotonic()
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": build_user_message(case)}],
     )
-    return response.choices[0].message.content
+    elapsed = time.monotonic() - start
+    usage = response.usage
+    return {
+        "text": response.choices[0].message.content,
+        "elapsed_seconds": round(elapsed, 2),
+        "total_tokens": usage.total_tokens if usage else None,
+    }
 
 
 if __name__ == "__main__":
     case_id = sys.argv[1] if len(sys.argv) > 1 else "TC-01"
-    text = run_case(case_id)
+    result = run_case(case_id)
     out_dir = BASE / "results" / "baseline"
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"{case_id}.txt"
-    out_path.write_text(text, encoding="utf-8")
-    print(f"저장: {out_path}")
+    out_path.write_text(result["text"], encoding="utf-8")
+    print(f"저장: {out_path} (실측: {result['total_tokens']} tokens, {result['elapsed_seconds']}s)")
     print("-" * 40)
-    print(text)
+    print(result["text"])

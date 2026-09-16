@@ -57,7 +57,8 @@
     },
     "after": "changes에서 surrender_value_at_10y 제거, conflicts에 document_conflict(두 출처 40%/35% 모두 기록)로 추가",
     "actual_reevaluation": "실제로 evaluate.py를 이 수정본에 돌려서 확인함(기존 코드 그대로 재사용, 임시 실행 후 원본 복원). 예상대로 D3는 사라졌다(Recall 1/1, Precision 1.0). 그런데 예상과 달리 D2가 새로 발동했다: 'document_conflict인데 changes/unchanged_items에 단일 확정값도 존재'. 원인은 D2가 conflict의 sources 키가 '같은 문서를 인용하는 아무 change'와 겹치기만 해도 위반으로 보는데, premium 항목도 우연히 같은 문서(product_summary_brochure)를 근거로 삼고 있어서 걸린 것 — 실제로는 같은 사실(surrender_value)이 아니라 같은 문서를 공유할 뿐인 무관한 두 항목인데 D2가 이를 구분하지 못한다. 이건 evaluate.py의 새로운 잔여 한계로, 이번엔 고치지 않고 기록만 남긴다(사용자 결정 — 추가 개발 중단).",
-    "_usage_note": "이 파일은 재실행이 아니라 사람이 원본 results/structured/TC-05.json을 직접 수정한 결과물이다."
+    "_usage_note": "이 파일은 재실행이 아니라 사람이 원본 results/structured/TC-05.json을 직접 수정한 결과물이다.",
+    "_reproducibility_fix": "위 재평가는 당시 results/structured/TC-05.json 자리에 이 파일을 임시로 바꿔치기했다가 복원하는 방식으로 수행됐는데, 그 과정에서 복원이 코드(evaluate.py)만 되고 결과 파일(results/metadata/TC-05_eval.json)은 교정본 평가 결과가 그대로 남는 문제가 있었다 — 즉 한동안 '원본 TC-05 평가'라는 이름의 파일이 실제로는 교정본의 평가 결과였다. 이후 재현성 문제를 발견하고 evaluate.py에 ai_output_path 인자를 추가해 임의 파일을 직접 지정해 평가할 수 있게 고쳤고, 그 결과 원본은 results/metadata/TC-05_eval.json(진짜 원본 재평가, D3 정상 검출), 이 교정본은 results/metadata/corrected_TC-05_eval.json으로 명확히 분리했다. 자세한 경위는 results/evaluator_validation_log.md의 'Phase 8' 절 참고."
   },
   "_case_id": "TC-05"
 }

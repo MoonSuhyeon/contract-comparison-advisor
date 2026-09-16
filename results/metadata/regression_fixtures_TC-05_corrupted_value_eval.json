@@ -1,0 +1,25 @@
+{
+  "case_id": "TC-05",
+  "recall_hits": 1,
+  "recall_total": 1,
+  "precision_violations": 1,
+  "precision_total": 1,
+  "evidence_ungrounded": 0,
+  "evidence_total": 1,
+  "findings": [
+    {
+      "rule": "B5",
+      "severity": "AUTO-FAIL",
+      "axis": "precision",
+      "message": "evidence 문장은 실존하지만 그 문장이 말하는 수치와 선언한 old/new(100000->999999)가 일치하지 않음 — '문장이 진짜다'와 '주장한 값이 그 문장에 부합한다'는 서로 다른 검증이다",
+      "item_ref": "premium"
+    },
+    {
+      "rule": "D2",
+      "severity": "AUTO-FAIL",
+      "axis": "conflict",
+      "message": "document_conflict인데 changes/unchanged_items에 단일 확정값도 존재",
+      "item_ref": "surrender_value_at_10y"
+    }
+  ]
+}
