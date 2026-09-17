@@ -378,7 +378,9 @@ def main() -> None:
 
         with st.expander("상담 내용", expanded=True):
             for msg in case_data.get("conversation", {}).get("messages", []):
-                st.markdown(f"- `[{msg['message_id']}]` **{msg['speaker']}**: {msg['text']}")
+                with st.chat_message(msg["speaker"]):
+                    st.write(msg["text"])
+                    st.caption(msg["message_id"])
 
         existing = case_data.get("existing_contract", {})
         with st.expander(f"기존 계약 — {existing.get('product_name', '')} ({existing.get('source_id', '')})", expanded=True):
