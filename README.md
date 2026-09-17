@@ -113,49 +113,41 @@ done
 
 ```
 contract-comparison-advisor/
-├── 01_문제정의.md              # 문제 정의 + 규제 근거 (금융위 발표 원문 확인)
-├── 02_테스트케이스.md          # 15개 테스트 케이스 목적·입력·기대결과·중요도 원본 설계
-├── 03_평가설계.md              # 평가 규칙·테스트 케이스·실행범위·정합성 수정 확정 이력 (발견 → 수정 → 재확정)
-├── 04_검증결과.md              # 구현 이후 검증 요약 — 평가기 버그, baseline 비교, Human Review,
-│                                #  Conflict 검증, 반복 검증, 최종 수치, 한계 (상세 로그는 results/)
-├── 05_업무효과검증_설계.md      # 업무 효과(시간·누락·오확정) 검증 설계 — 실행 전, 편향 완화 절차·
-│                                #  사전 등록한 해석 규칙만 확정된 상태 (results/work_effect/)
-├── 06_종합정리.md                     # 최종 정리 (문제/접근법/구현/결과/한계/실행방법 6개 항목)
+├── 01_문제정의.md              # 문제 정의 + 규제 근거
+├── 02_테스트케이스.md          # 15개 테스트 케이스 설계
+├── 03_평가설계.md              # 평가 규칙·실행범위 확정 이력
+├── 04_검증결과.md              # 검증 요약(버그·baseline·한계)
+├── 05_업무효과검증_설계.md      # 업무 효과 검증 설계(실행 전)
+├── 06_종합정리.md                # 최종 정리
 ├── requirements.txt
 ├── .env.example
 ├── prompt/
 │   ├── system_prompt.md               # 구조화 파이프라인 시스템 프롬프트
-│   │                                   # (Extract/Compare/Flag/Unknown/Evidence, judgment 항상 null)
-│   └── instructed_freeform_prompt.md  # 세 번째 baseline용 — 지침은 동일, 출력만 자유서술
+│   └── instructed_freeform_prompt.md  # 세 번째 baseline용 지침
 ├── schema/
-│   ├── output_schema.json            # 공통 Output JSON Schema (changes/unchanged_items/
-│   │                                  #  unknowns/conflicts/additional_conditions/customer_needs)
-│   └── validation_rules.md           # 자동 평가 규칙 — 매칭 M1~M3, 검증 A~E(Precision/
-│                                      #  Unknown/Conflict/Boundary Violation)
+│   ├── output_schema.json            # Output JSON Schema
+│   └── validation_rules.md           # 자동 평가 규칙(A~E)
 ├── src/
-│   ├── llm_extractor.py                    # 구조화 파이프라인 실행 — function calling + jsonschema
-│   │                                        #  검증 + 재시도, 실패해도 크래시 대신 무효표시 저장
-│   ├── naive_baseline.py                   # naive baseline 실행 — 스키마 없는 자유 텍스트 (비교 기준)
-│   ├── instructed_freeform_baseline.py     # 세 번째 baseline — 지침은 structured와 동일, 출력은 자유서술
-│   ├── evaluate.py                         # GT 대조 자동 평가기 — Recall/Precision/Evidence/Unknown/
-│   │                                        #  Conflict/Boundary, AUTO-FAIL/HUMAN-QUEUE 판정, B5(값-근거
-│   │                                        #  일치) 포함, 임의 파일 경로 지정 가능(원본/교정본/fixture)
-│   └── conflict_detector.py                # GT·LLM 미사용 — 문서 원문만으로 수치 충돌 독립 탐지
+│   ├── llm_extractor.py                    # 구조화 파이프라인 실행
+│   ├── naive_baseline.py                   # naive baseline 실행
+│   ├── instructed_freeform_baseline.py     # 세 번째 baseline 실행
+│   ├── evaluate.py                         # GT 대조 자동 평가기
+│   └── conflict_detector.py                # GT 없는 conflict 탐지
 ├── data/
-│   └── tc01~15_data.json             # 15개 테스트 케이스 (시나리오 + Ground Truth), 7개만 실행
+│   └── tc01~15_data.json             # 테스트 케이스 + Ground Truth
 └── results/
-    ├── structured/TC-XX.json                     # 구조화 파이프라인 실제 출력
-    ├── baseline/TC-XX.txt                        # naive baseline 실제 출력(자유 텍스트)
-    ├── instructed_freeform/TC-XX.txt             # 세 번째 baseline 실제 출력(5건)
-    ├── metadata/TC-XX_eval.json                  # evaluate.py 채점 결과(수치 + 위반 목록)
-    ├── corrected/TC-05.json                      # Human Review로 사람이 직접 수정한 사례
-    ├── regression_fixtures/TC-05_corrupted_value.json  # B5 회귀 테스트용 값 위조 fixture
-    ├── conflict_detection/TC-XX.json             # GT 없는 conflict 탐지 결과 + Human Review 기록
-    ├── naive_baseline_human_review.md            # naive 7건을 사람이 직접 6개 기준으로 대조 평가
-    ├── instructed_freeform_human_review.md       # 세 번째 baseline 5건 3방향 비교(naive/이것/structured)
-    ├── conflict_detector_log.md                  # GT 없는 conflict 탐지기 개발·검증 기록
-    ├── evaluator_validation_log.md               # evaluate.py 개발 중 발견한 버그·한계 전체 기록(B5 포함)
-    └── tc01_iteration_log.md                     # TC-01 프롬프트 v1→v2 반복 개선 기록
+    ├── structured/TC-XX.json                     # 구조화 파이프라인 출력
+    ├── baseline/TC-XX.txt                        # naive baseline 출력
+    ├── instructed_freeform/TC-XX.txt             # 세 번째 baseline 출력
+    ├── metadata/TC-XX_eval.json                  # 자동 채점 결과
+    ├── corrected/TC-05.json                      # Human Review 수정본
+    ├── regression_fixtures/TC-05_corrupted_value.json  # 회귀 테스트 fixture
+    ├── conflict_detection/TC-XX.json             # GT 없는 conflict 탐지 결과
+    ├── naive_baseline_human_review.md            # naive 사람 대조 평가
+    ├── instructed_freeform_human_review.md       # 3방향 비교
+    ├── conflict_detector_log.md                  # conflict 탐지기 검증 기록
+    ├── evaluator_validation_log.md               # 평가기 버그·한계 기록
+    └── tc01_iteration_log.md                     # TC-01 반복 개선 기록
 ```
 
 ## 스코프와 한계
