@@ -214,23 +214,30 @@ def render_kpi_cards(comparison_count: int, conflict_count: int, unknown_count: 
     st.markdown(f'<div style="display:flex;gap:14px;margin-bottom:22px;">{cards}</div>', unsafe_allow_html=True)
 
 
-def render_comparison_summary(rows: list[dict]) -> None:
-    cards = []
+def render_comparison_summary(rows: list[dict], case_data: dict) -> None:
     for row in rows:
         item = row["항목"]
         old_v = format_value(item, row["기존값"])
         new_v = format_value(item, row["신규값"])
-        cards.append(
+        card_html = (
             '<div style="display:flex;align-items:center;gap:16px;background:#fff;'
-            'border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px;margin-bottom:8px;'
-            'box-shadow:0 1px 2px rgba(0,0,0,0.04);">'
+            'border:1px solid #e2e8f0;border-radius:10px 10px 0 0;border-bottom:none;'
+            'padding:14px 18px;box-shadow:0 1px 2px rgba(0,0,0,0.04);">'
             f'<div style="flex:2;font-weight:600;color:#0f172a;">{label_for_item(item)}</div>'
             f'<div style="flex:3;color:#334155;font-size:14.5px;">{old_v} &rarr; {new_v}</div>'
             f'<div style="flex:2;">{delta_badge_html(row["변화방향"])}</div>'
             f'<div style="flex:1;text-align:right;">{badge_html(row["상태"], "#0f172a")}</div>'
             '</div>'
         )
-    st.markdown("".join(cards), unsafe_allow_html=True)
+        st.markdown(card_html, unsafe_allow_html=True)
+        source_id = row.get("_source_id", "")
+        source_location = row.get("_source_location", "")
+        with st.expander(f"근거: {row['근거'] or '(없음)'}"):
+            if source_location:
+                st.write(find_source_text(case_data, source_id, source_location))
+            else:
+                st.caption("연결된 원문 출처가 없습니다.")
+        st.markdown('<div style="margin-bottom:10px;"></div>', unsafe_allow_html=True)
 
 
 CUSTOM_CSS = """
@@ -330,12 +337,13 @@ def main() -> None:
 
     st.divider()
 
-    tab_compare, tab_source, tab_evidence = st.tabs(["비교표", "원문 자료", "근거 원문 보기"])
+    tab_compare, tab_source = st.tabs(["비교표", "원문 자료"])
 
     with tab_compare:
         if condition_code == "B" and ai_output:
-            st.caption("AI 제안 요약 (읽기 전용) — 실제 수정은 아래 \"표 직접 수정\"에서 합니다.")
-            render_comparison_summary(ai_output_to_comparison_rows(ai_output))
+            st.caption("AI 제안 요약(읽기 전용, 항목별 \"근거\"를 펼치면 원문을 바로 확인합니다) "
+                       "— 실제 수정은 아래 \"표 직접 수정\"에서 합니다.")
+            render_comparison_summary(ai_output_to_comparison_rows(ai_output), case_data)
             with st.expander("표 직접 수정", expanded=False):
                 edited = st.data_editor(
                     st.session_state[table_key],
@@ -379,19 +387,6 @@ def main() -> None:
         st.markdown(f"**신규 상품** — {new_product.get('product_name', '')} (`{new_product.get('source_id', '')}`)")
         for loc, doc in new_product.get("documents", {}).items():
             st.markdown(f"- `{loc}`: {doc.get('text', '')}")
-
-    with tab_evidence:
-        if condition_code == "B" and ai_output:
-            seen = set()
-            for row in ai_output_to_comparison_rows(ai_output):
-                loc = (row["_source_id"], row["_source_location"])
-                if loc in seen or not row["_source_location"]:
-                    continue
-                seen.add(loc)
-                st.write(f"**[{row['_source_id']}/{row['_source_location']}]** "
-                         f"{find_source_text(case_data, *loc)}")
-        else:
-            st.caption("조건 A에서는 원문 자료 탭에서 직접 근거를 확인하세요.")
 
     st.divider()
     if st.button("최종 확정", type="primary", use_container_width=True):
