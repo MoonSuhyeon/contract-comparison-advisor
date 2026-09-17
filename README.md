@@ -97,7 +97,16 @@ done
 # -> results/instructed_freeform/TC-05.txt
 ```
 
-### 8. 결과 확인
+### 8. 업무 효과 검토 UI (Streamlit)
+```bash
+.venv/Scripts/python -m streamlit run src/review_app.py
+```
+AI가 만든 비교 초안(TC-01)을 화면에서 직접 확인·수정·추가해 최종 결과를 확정하는 검토
+도구입니다. Ground Truth는 이 화면에 절대 노출되지 않고, "최종 확정"을 누르면 소요 시간과
+수정·추가 항목 수가 `results/work_effect/app_logs/`에 자동 기록됩니다(`05_업무효과검증_설계.md`
+§8에서 정의한 검토 화면의 구현체).
+
+### 9. 결과 확인
 | 무엇을 보려면 | 어디를 보면 되는가 |
 |---|---|
 | 구조화 파이프라인이 실제로 낸 JSON | `results/structured/TC-XX.json` |
@@ -108,6 +117,7 @@ done
 | Human Review로 사람이 직접 수정한 사례(TC-05) | `results/corrected/TC-05.json` |
 | GT 없이 문서만으로 탐지한 conflict 후보 + Human Review | `results/conflict_detection/TC-05.json`, `results/conflict_detector_log.md` |
 | 세 번째 baseline(지침 동일+자유서술) 3방향 비교 | `results/instructed_freeform_human_review.md` |
+| 검토 UI에서 "최종 확정"으로 저장한 소요시간·수정량 로그 | `results/work_effect/app_logs/TC-XX_조건_실행ID.json` |
 
 ## 폴더 구조
 
@@ -132,7 +142,8 @@ contract-comparison-advisor/
 │   ├── naive_baseline.py                   # naive baseline 실행
 │   ├── instructed_freeform_baseline.py     # 세 번째 baseline 실행
 │   ├── evaluate.py                         # GT 대조 자동 평가기
-│   └── conflict_detector.py                # GT 없는 conflict 탐지
+│   ├── conflict_detector.py                # GT 없는 conflict 탐지
+│   └── review_app.py                       # 업무 효과 검토 UI(Streamlit)
 ├── data/
 │   └── tc01~15_data.json             # 테스트 케이스 + Ground Truth
 └── results/
