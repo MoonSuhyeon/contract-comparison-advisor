@@ -6,6 +6,11 @@ Stage 1: TC-01 하나만 대상. AI 비교 초안(결과)을 사람이 확인·�
 
 Ground Truth는 이 앱에서 절대 읽지 않는다(실험 중 정답 노출 금지, 05번 문서 §6-3).
 사후 채점은 별도 스크립트에서 수행한다.
+
+배지 색상은 변화 유형(증가/감소/단축 등)별 고정 색상이며, "좋다/나쁘다"를 뜻하지
+않는다. 보험료 감소는 유리하지만 보장금액 감소는 불리한 것처럼 방향의 의미는
+항목마다 다르므로, 색으로 유불리를 암시하면 이 프로젝트가 금지하는 "AI가
+판단을 대신하는 것"(judgment: null 원칙)이 되어버린다.
 """
 
 from __future__ import annotations
@@ -29,6 +34,30 @@ TABLE_COLUMNS = ["_row_id", "구분", "항목", "기존값", "신규값", "변�
 KIND_OPTIONS = ["변경", "변경없음"]
 STATUS_OPTIONS = ["AI 제안", "확인", "수정", "사람 추가"]
 
+ITEM_LABELS = {
+    "premium": "보험료",
+    "renewal_period": "갱신 주기",
+    "surrender_value": "해지환급률",
+    "surrender_value_at_10y": "10년 해지환급률",
+    "coverage_amount_cancer": "암 진단비",
+    "coverage_amount_cerebro_cardiac": "뇌혈관질환·급성심근경색 진단비",
+    "coverage_items.cancer_diagnosis": "암 진단비",
+    "coverage_items.cerebro_cardiac_diagnosis": "뇌혈관질환·급성심근경색 진단비",
+}
+WON_ITEMS = {
+    "premium", "coverage_amount_cancer", "coverage_amount_cerebro_cardiac",
+    "coverage_items.cancer_diagnosis", "coverage_items.cerebro_cardiac_diagnosis",
+}
+# 유형별 고정 색상(유불리 아님). 같은 유형이면 어떤 항목이든 항상 같은 색.
+DELTA_BADGES = {
+    "decrease": ("감소", "#2563eb"),
+    "increase": ("증가", "#ea580c"),
+    "shortened": ("단축", "#7c3aed"),
+    "extended": ("연장", "#0891b2"),
+    "removed": ("삭제", "#334155"),
+    "unchanged": ("변경없음", "#6b7280"),
+}
+
 
 def load_case_data(case_id: str) -> dict:
     path = DATA_DIR / f"{case_id.lower().replace('-', '')}_data.json"
@@ -44,6 +73,31 @@ def load_ai_output(case_id: str) -> dict | None:
         return None
     with open(path, encoding="utf-8") as f:
         return json.load(f)
+
+
+def label_for_item(item: str) -> str:
+    return ITEM_LABELS.get(item, item)
+
+
+def format_value(item: str, value) -> str:
+    if value is None or value == "":
+        return "—"
+    if item in WON_ITEMS and isinstance(value, (int, float)):
+        return f"{int(value):,}원"
+    return str(value)
+
+
+def badge_html(text: str, color: str) -> str:
+    return (
+        f'<span style="display:inline-block;background:{color}1A;color:{color};'
+        f'border:1px solid {color}55;border-radius:999px;padding:3px 12px;'
+        f'font-size:12.5px;font-weight:600;white-space:nowrap;">{text}</span>'
+    )
+
+
+def delta_badge_html(delta_type: str) -> str:
+    label, color = DELTA_BADGES.get(delta_type, (delta_type or "-", "#475569"))
+    return badge_html(label, color)
 
 
 def ai_output_to_comparison_rows(ai: dict) -> list[dict]:
@@ -139,8 +193,76 @@ def render_review_list(items: list[dict], box, key_prefix: str) -> None:
             item["note"] = cols[1].text_input("비고 / 수정", value=item["note"], key=f"{key_prefix}-{item['_id']}-note")
 
 
+def render_kpi_cards(comparison_count: int, conflict_count: int, unknown_count: int, elapsed: int) -> None:
+    def card(label: str, value: str, alert: bool = False) -> str:
+        border = "#dc2626" if alert else "#e2e8f0"
+        value_color = "#dc2626" if alert else "#0f172a"
+        return (
+            '<div style="flex:1;background:#fff;border:1px solid {border};border-radius:12px;'
+            'padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">'
+            '<div style="font-size:13px;color:#64748b;font-weight:500;margin-bottom:6px;">{label}</div>'
+            '<div style="font-size:28px;font-weight:700;color:{value_color};">{value}</div>'
+            '</div>'
+        ).format(border=border, label=label, value_color=value_color, value=value)
+
+    cards = "".join([
+        card("비교 항목", str(comparison_count)),
+        card("Conflict", str(conflict_count), alert=conflict_count > 0),
+        card("Unknown", str(unknown_count), alert=unknown_count > 0),
+        card("경과 시간", f"{elapsed // 60}분 {elapsed % 60}초"),
+    ])
+    st.markdown(f'<div style="display:flex;gap:14px;margin-bottom:22px;">{cards}</div>', unsafe_allow_html=True)
+
+
+def render_comparison_summary(rows: list[dict]) -> None:
+    cards = []
+    for row in rows:
+        item = row["항목"]
+        old_v = format_value(item, row["기존값"])
+        new_v = format_value(item, row["신규값"])
+        cards.append(
+            '<div style="display:flex;align-items:center;gap:16px;background:#fff;'
+            'border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px;margin-bottom:8px;'
+            'box-shadow:0 1px 2px rgba(0,0,0,0.04);">'
+            f'<div style="flex:2;font-weight:600;color:#0f172a;">{label_for_item(item)}</div>'
+            f'<div style="flex:3;color:#334155;font-size:14.5px;">{old_v} &rarr; {new_v}</div>'
+            f'<div style="flex:2;">{delta_badge_html(row["변화방향"])}</div>'
+            f'<div style="flex:1;text-align:right;">{badge_html(row["상태"], "#0f172a")}</div>'
+            '</div>'
+        )
+    st.markdown("".join(cards), unsafe_allow_html=True)
+
+
+CUSTOM_CSS = """
+<style>
+.block-container { padding-top: 2rem; padding-bottom: 3rem; max-width: 1200px; }
+div[data-testid="stButton"] > button {
+    border-radius: 8px;
+    font-weight: 600;
+}
+div[data-testid="stButton"] > button[kind="primary"] {
+    padding: 0.65rem 1.2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+div[data-testid="stExpander"] {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+div[data-testid="stMetric"] {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+</style>
+"""
+
+
 def main() -> None:
     st.set_page_config(page_title="계약 비교 검토", layout="wide")
+    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
     st.title("계약 비교 결과 검토")
     st.caption("AI가 만든 비교 초안을 확인·수정한 뒤 최종 결과를 확정하세요. Ground Truth는 이 화면에 없습니다.")
 
@@ -173,13 +295,75 @@ def main() -> None:
         st.session_state[unknowns_key] = ai_output_to_unknowns(ai_output) if (condition_code == "B" and ai_output) else []
         st.session_state[conflicts_key] = ai_output_to_conflicts(ai_output) if (condition_code == "B" and ai_output) else []
 
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("비교 항목", len(st.session_state[table_key]))
-    m2.metric("Conflict", len(st.session_state[conflicts_key]))
-    m3.metric("Unknown", len(st.session_state[unknowns_key]))
-    m4.metric("경과 시간", f"{elapsed // 60}분 {elapsed % 60}초")
+    render_kpi_cards(
+        len(st.session_state[table_key]),
+        len(st.session_state[conflicts_key]),
+        len(st.session_state[unknowns_key]),
+        elapsed,
+    )
 
-    with st.expander("원문 자료 (상담 · 기존 계약 · 신규 상품)", expanded=(condition_code == "A")):
+    # 확인이 필요한 영역(Conflict/Unknown)은 표보다 먼저, 화면 상단에 배치한다.
+    col_conflict, col_unknown = st.columns(2)
+    with col_conflict:
+        st.markdown("#### Conflict")
+        if st.session_state[conflicts_key]:
+            render_review_list(st.session_state[conflicts_key], st.error, "conflict")
+        else:
+            st.caption("표시된 Conflict가 없습니다.")
+        if st.button("+ Conflict 추가", key=f"add_conflict_{case_id}_{condition_code}"):
+            st.session_state[conflicts_key].append(
+                {"_id": f"conflict-manual-{uuid.uuid4().hex[:6]}", "항목": "", "설명": "", "checked": False, "note": ""}
+            )
+            st.rerun()
+
+    with col_unknown:
+        st.markdown("#### Unknown")
+        if st.session_state[unknowns_key]:
+            render_review_list(st.session_state[unknowns_key], st.warning, "unknown")
+        else:
+            st.caption("표시된 Unknown이 없습니다.")
+        if st.button("+ Unknown 추가", key=f"add_unknown_{case_id}_{condition_code}"):
+            st.session_state[unknowns_key].append(
+                {"_id": f"unknown-manual-{uuid.uuid4().hex[:6]}", "항목": "", "설명": "", "출처": "", "checked": False, "note": ""}
+            )
+            st.rerun()
+
+    st.divider()
+
+    tab_compare, tab_source, tab_evidence = st.tabs(["비교표", "원문 자료", "근거 원문 보기"])
+
+    with tab_compare:
+        if condition_code == "B" and ai_output:
+            st.caption("AI 제안 요약 (읽기 전용) — 실제 수정은 아래 \"표 직접 수정\"에서 합니다.")
+            render_comparison_summary(ai_output_to_comparison_rows(ai_output))
+            with st.expander("표 직접 수정", expanded=False):
+                edited = st.data_editor(
+                    st.session_state[table_key],
+                    num_rows="dynamic",
+                    column_order=["구분", "항목", "기존값", "신규값", "변화방향", "근거", "상태"],
+                    column_config={
+                        "구분": st.column_config.SelectboxColumn(options=KIND_OPTIONS),
+                        "상태": st.column_config.SelectboxColumn(options=STATUS_OPTIONS),
+                    },
+                    key=f"editor_widget_{case_id}_{condition_code}",
+                    use_container_width=True,
+                )
+                st.session_state[table_key] = edited
+        else:
+            edited = st.data_editor(
+                st.session_state[table_key],
+                num_rows="dynamic",
+                column_order=["구분", "항목", "기존값", "신규값", "변화방향", "근거", "상태"],
+                column_config={
+                    "구분": st.column_config.SelectboxColumn(options=KIND_OPTIONS),
+                    "상태": st.column_config.SelectboxColumn(options=STATUS_OPTIONS),
+                },
+                key=f"editor_widget_{case_id}_{condition_code}",
+                use_container_width=True,
+            )
+            st.session_state[table_key] = edited
+
+    with tab_source:
         st.markdown("**고객 정보**")
         render_fields(case_data.get("customer", {}))
 
@@ -196,22 +380,8 @@ def main() -> None:
         for loc, doc in new_product.get("documents", {}).items():
             st.markdown(f"- `{loc}`: {doc.get('text', '')}")
 
-    st.subheader("비교표")
-    edited = st.data_editor(
-        st.session_state[table_key],
-        num_rows="dynamic",
-        column_order=["구분", "항목", "기존값", "신규값", "변화방향", "근거", "상태"],
-        column_config={
-            "구분": st.column_config.SelectboxColumn(options=KIND_OPTIONS),
-            "상태": st.column_config.SelectboxColumn(options=STATUS_OPTIONS),
-        },
-        key=f"editor_widget_{case_id}_{condition_code}",
-        use_container_width=True,
-    )
-    st.session_state[table_key] = edited
-
-    if condition_code == "B" and ai_output:
-        with st.expander("근거 원문 보기"):
+    with tab_evidence:
+        if condition_code == "B" and ai_output:
             seen = set()
             for row in ai_output_to_comparison_rows(ai_output):
                 loc = (row["_source_id"], row["_source_location"])
@@ -220,31 +390,8 @@ def main() -> None:
                 seen.add(loc)
                 st.write(f"**[{row['_source_id']}/{row['_source_location']}]** "
                          f"{find_source_text(case_data, *loc)}")
-
-    col_conflict, col_unknown = st.columns(2)
-    with col_conflict:
-        st.markdown("### Conflict")
-        if st.session_state[conflicts_key]:
-            render_review_list(st.session_state[conflicts_key], st.error, "conflict")
         else:
-            st.caption("표시된 Conflict가 없습니다.")
-        if st.button("+ Conflict 추가", key=f"add_conflict_{case_id}_{condition_code}"):
-            st.session_state[conflicts_key].append(
-                {"_id": f"conflict-manual-{uuid.uuid4().hex[:6]}", "항목": "", "설명": "", "checked": False, "note": ""}
-            )
-            st.rerun()
-
-    with col_unknown:
-        st.markdown("### Unknown")
-        if st.session_state[unknowns_key]:
-            render_review_list(st.session_state[unknowns_key], st.warning, "unknown")
-        else:
-            st.caption("표시된 Unknown이 없습니다.")
-        if st.button("+ Unknown 추가", key=f"add_unknown_{case_id}_{condition_code}"):
-            st.session_state[unknowns_key].append(
-                {"_id": f"unknown-manual-{uuid.uuid4().hex[:6]}", "항목": "", "설명": "", "출처": "", "checked": False, "note": ""}
-            )
-            st.rerun()
+            st.caption("조건 A에서는 원문 자료 탭에서 직접 근거를 확인하세요.")
 
     st.divider()
     if st.button("최종 확정", type="primary", use_container_width=True):
@@ -253,10 +400,11 @@ def main() -> None:
 
         original = st.session_state[session_key(case_id, condition_code, "original")]
         original_by_id = {r["_row_id"]: r for r in original.to_dict("records") if r["_row_id"]}
+        edited_df = st.session_state[table_key]
 
         human_edit_count = 0
         human_added_count = 0
-        for row in edited.to_dict("records"):
+        for row in edited_df.to_dict("records"):
             rid = row.get("_row_id") or ""
             if not rid:
                 if any(str(row.get(c, "")).strip() for c in ("항목", "기존값", "신규값", "근거")):
@@ -284,7 +432,7 @@ def main() -> None:
             "human_added_count": human_added_count,
             "conflict_review_count": conflict_review_count,
             "unknown_review_count": unknown_review_count,
-            "final_table": edited.drop(columns=["_source_id", "_source_location"], errors="ignore").to_dict("records"),
+            "final_table": edited_df.drop(columns=["_source_id", "_source_location"], errors="ignore").to_dict("records"),
             "final_conflicts": st.session_state[conflicts_key],
             "final_unknowns": st.session_state[unknowns_key],
         }
