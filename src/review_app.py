@@ -141,7 +141,7 @@ def render_review_list(items: list[dict], box, key_prefix: str) -> None:
 
 def main() -> None:
     st.set_page_config(page_title="계약 비교 검토", layout="wide")
-    st.title("📋 계약 비교 결과 검토")
+    st.title("계약 비교 결과 검토")
     st.caption("AI가 만든 비교 초안을 확인·수정한 뒤 최종 결과를 확정하세요. Ground Truth는 이 화면에 없습니다.")
 
     with st.sidebar:
@@ -175,11 +175,11 @@ def main() -> None:
 
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("비교 항목", len(st.session_state[table_key]))
-    m2.metric("⚠️ Conflict", len(st.session_state[conflicts_key]))
-    m3.metric("❓ Unknown", len(st.session_state[unknowns_key]))
-    m4.metric("⏱ 경과 시간", f"{elapsed // 60}분 {elapsed % 60}초")
+    m2.metric("Conflict", len(st.session_state[conflicts_key]))
+    m3.metric("Unknown", len(st.session_state[unknowns_key]))
+    m4.metric("경과 시간", f"{elapsed // 60}분 {elapsed % 60}초")
 
-    with st.expander("📄 원문 자료 (상담 · 기존 계약 · 신규 상품)", expanded=(condition_code == "A")):
+    with st.expander("원문 자료 (상담 · 기존 계약 · 신규 상품)", expanded=(condition_code == "A")):
         st.markdown("**고객 정보**")
         render_fields(case_data.get("customer", {}))
 
@@ -211,7 +211,7 @@ def main() -> None:
     st.session_state[table_key] = edited
 
     if condition_code == "B" and ai_output:
-        with st.expander("🔍 근거 원문 보기"):
+        with st.expander("근거 원문 보기"):
             seen = set()
             for row in ai_output_to_comparison_rows(ai_output):
                 loc = (row["_source_id"], row["_source_location"])
@@ -223,7 +223,7 @@ def main() -> None:
 
     col_conflict, col_unknown = st.columns(2)
     with col_conflict:
-        st.markdown("### ⚠️ Conflict")
+        st.markdown("### Conflict")
         if st.session_state[conflicts_key]:
             render_review_list(st.session_state[conflicts_key], st.error, "conflict")
         else:
@@ -235,7 +235,7 @@ def main() -> None:
             st.rerun()
 
     with col_unknown:
-        st.markdown("### ❓ Unknown")
+        st.markdown("### Unknown")
         if st.session_state[unknowns_key]:
             render_review_list(st.session_state[unknowns_key], st.warning, "unknown")
         else:
@@ -247,7 +247,7 @@ def main() -> None:
             st.rerun()
 
     st.divider()
-    if st.button("✅ 최종 확정", type="primary", use_container_width=True):
+    if st.button("최종 확정", type="primary", use_container_width=True):
         end_time = time.time()
         duration = round(end_time - st.session_state[start_key], 1)
 
