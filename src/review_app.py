@@ -28,7 +28,7 @@ DATA_DIR = ROOT / "data"
 STRUCTURED_DIR = ROOT / "results" / "structured"
 LOG_DIR = ROOT / "results" / "work_effect" / "app_logs"
 
-CASES = ["TC-01"]  # Stage 3에서 TC-03/04/05/10/11/15 추가
+CASES = ["TC-01", "TC-04", "TC-05"]  # TC-03/10/11/15는 이후 단계에서 추가
 
 TABLE_COLUMNS = ["_row_id", "구분", "항목", "기존값", "신규값", "변화방향", "근거", "상태"]
 KIND_OPTIONS = ["변경", "변경없음"]

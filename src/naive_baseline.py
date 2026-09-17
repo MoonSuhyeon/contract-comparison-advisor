@@ -49,8 +49,10 @@ def _get_client():
 
 
 def run_case(case_id: str) -> dict:
-    """토큰 사용량·처리시간을 실측 기록한다(맨 처음 실행한 7건은 이 계측이 없기 전에
-    실행돼 추정치만 남아있음 — 06_종합정리.md §4에 명시. 이 함수는 이후 실행분부터 실측한다)."""
+    """토큰 사용량·처리시간을 실측 기록한다. 맨 처음 실행한 7건은 이 계측(및 저장) 로직이
+    생기기 전에 실행돼 실측치가 없다 — 06_종합정리.md §4에 이 사실을 그대로 밝혀둔다.
+    이 함수 자체는 매 호출마다 실측하지만, __main__에서 파일로 저장해야 재현 가능한
+    기록으로 남는다."""
     case = load_case(case_id)
     client = _get_client()
     model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
@@ -64,6 +66,8 @@ def run_case(case_id: str) -> dict:
     return {
         "text": response.choices[0].message.content,
         "elapsed_seconds": round(elapsed, 2),
+        "prompt_tokens": usage.prompt_tokens if usage else None,
+        "completion_tokens": usage.completion_tokens if usage else None,
         "total_tokens": usage.total_tokens if usage else None,
     }
 
@@ -75,6 +79,15 @@ if __name__ == "__main__":
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"{case_id}.txt"
     out_path.write_text(result["text"], encoding="utf-8")
+
+    meta_path = out_dir / f"{case_id}_meta.json"
+    meta_path.write_text(
+        json.dumps(
+            {k: v for k, v in result.items() if k != "text"} | {"case_id": case_id},
+            ensure_ascii=False, indent=2,
+        ),
+        encoding="utf-8",
+    )
     print(f"저장: {out_path} (실측: {result['total_tokens']} tokens, {result['elapsed_seconds']}s)")
     print("-" * 40)
     print(result["text"])
