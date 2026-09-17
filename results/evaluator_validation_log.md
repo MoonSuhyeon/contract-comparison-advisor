@@ -26,7 +26,7 @@
    → `ground_status()`로 분리(grounded/wrong_source/not_found), wrong_source는 HUMAN-QUEUE로.
 
 **매칭 설계의 한계 발견과 수정**: 1차 키(source_id+source_location) 매칭이 출처 오귀속 때문에
-실패해서 자동 Recall이 0/1로 나옴 → M1/M2/M3 매칭 신뢰도 계층 도입(`설계_확정본.md` §3-4,
+실패해서 자동 Recall이 0/1로 나옴 → M1/M2/M3 매칭 신뢰도 계층 도입(`02_설계.md` §3-4,
 `schema/validation_rules.md` §0). M2(값 기반 후보, 같은 카테고리 내 old/new 일치)는 자동
 점수에 반영하지 않고 HUMAN-QUEUE로만 표시하도록 구현.
 
