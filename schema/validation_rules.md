@@ -1,7 +1,7 @@
 # Output Schema Validation Rules (실행용 확정본)
 
 기준: `03_평가설계.md` §2, `schema/output_schema.json`. 여기 없는 항목(다중 축 동시 감점 여부 등)은
-의도적으로 비워둔 것이며 `03_평가설계.md` §5(구현 시 결정할 사항)에서 다룬다.
+의도적으로 비워둔 것이며 `03_평가설계.md` §5(구현 과정에서 남은 결정 사항)에서 다룬다.
 
 각 규칙은 `자동확정(AUTO-FAIL)` / `자동통과 조건부(CONDITIONAL)` / `사람검토 큐(HUMAN-QUEUE)` 중 하나로 분류한다.
 AUTO-FAIL만 채점에 즉시 반영하고, HUMAN-QUEUE는 사람이 확인하기 전까지 미확정 상태로 둔다.
