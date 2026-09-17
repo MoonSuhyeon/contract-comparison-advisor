@@ -48,14 +48,23 @@ WON_ITEMS = {
     "premium", "coverage_amount_cancer", "coverage_amount_cerebro_cardiac",
     "coverage_items.cancer_diagnosis", "coverage_items.cerebro_cardiac_diagnosis",
 }
-# 유형별 고정 색상(유불리 아님). 같은 유형이면 어떤 항목이든 항상 같은 색.
+
+# 앱 전체가 공유하는 색상 팔레트 — 강조색 하나(ACCENT) + 중립 회색만 쓴다.
+# 빨강/주황(경고색)은 팔레트에 없고 Conflict·Unknown 알림에서만 예외적으로 쓴다.
+ACCENT = "#4f46e5"
+NEUTRAL = "#64748b"
+NEUTRAL_DARK = "#334155"
+ALERT = "#dc2626"
+
+# 유형별 색상은 "좋다/나쁘다"가 아니라 "변화가 있었는가"만 구분한다(같은 강조색),
+# 실제 변화 종류(감소/증가/단축 등)는 색이 아니라 배지 텍스트로 구분한다.
 DELTA_BADGES = {
-    "decrease": ("감소", "#2563eb"),
-    "increase": ("증가", "#ea580c"),
-    "shortened": ("단축", "#7c3aed"),
-    "extended": ("연장", "#0891b2"),
-    "removed": ("삭제", "#334155"),
-    "unchanged": ("변경없음", "#6b7280"),
+    "decrease": ("감소", ACCENT),
+    "increase": ("증가", ACCENT),
+    "shortened": ("단축", ACCENT),
+    "extended": ("연장", ACCENT),
+    "removed": ("삭제", NEUTRAL_DARK),
+    "unchanged": ("변경없음", NEUTRAL),
 }
 
 
@@ -208,8 +217,8 @@ def render_contract_card(title: str, subtitle: str, color: str, inner_html: str)
 
 
 SPEAKER_STYLE = {
-    "agent": ("설계사", "#eff6ff", "#93c5fd", "#1d4ed8"),
-    "customer": ("고객", "#f8fafc", "#cbd5e1", "#334155"),
+    "agent": ("설계사", "#eef2ff", ACCENT, ACCENT),
+    "customer": ("고객", "#f8fafc", "#cbd5e1", NEUTRAL_DARK),
 }
 
 
@@ -238,8 +247,8 @@ def render_review_list(items: list[dict], box, key_prefix: str) -> None:
 
 def render_kpi_cards(comparison_count: int, conflict_count: int, unknown_count: int, elapsed: int) -> None:
     def card(label: str, value: str, alert: bool = False) -> str:
-        border = "#dc2626" if alert else "#e2e8f0"
-        value_color = "#dc2626" if alert else "#0f172a"
+        border = ALERT if alert else "#e2e8f0"
+        value_color = ALERT if alert else "#0f172a"
         return (
             '<div style="flex:1;background:#fff;border:1px solid {border};border-radius:12px;'
             'padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">'
@@ -430,7 +439,7 @@ def main() -> None:
         render_contract_card(
             f"기존 계약 — {existing.get('product_name', '')}",
             existing.get("source_id", ""),
-            "#d97706",
+            NEUTRAL,
             field_rows_html(existing.get("fields", {})),
         )
 
@@ -442,7 +451,7 @@ def main() -> None:
         render_contract_card(
             f"신규 상품 — {new_product.get('product_name', '')}",
             new_product.get("source_id", ""),
-            "#059669",
+            ACCENT,
             new_product_html,
         )
 
