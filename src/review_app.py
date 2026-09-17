@@ -182,6 +182,31 @@ def render_fields(data: dict, indent: int = 0) -> None:
             st.markdown(f"{prefix} **{key}**: {value}")
 
 
+def field_rows_html(data: dict, indent: int = 0) -> str:
+    rows = []
+    for key, value in data.items():
+        pad = 16 * indent
+        if isinstance(value, dict):
+            rows.append(f'<div style="margin-left:{pad}px;font-weight:700;margin-top:6px;">{key}</div>')
+            rows.append(field_rows_html(value, indent + 1))
+        else:
+            rows.append(f'<div style="margin-left:{pad}px;">• <b>{key}</b>: {value}</div>')
+    return "".join(rows)
+
+
+def render_contract_card(title: str, subtitle: str, color: str, inner_html: str) -> None:
+    subtitle_html = f'<div style="color:#64748b;font-size:12.5px;margin-bottom:8px;">{subtitle}</div>' if subtitle else ""
+    st.markdown(
+        f'<div style="background:{color}0d;border:1px solid {color}55;border-left:4px solid {color};'
+        'border-radius:10px;padding:14px 18px;margin-bottom:14px;">'
+        f'<div style="font-weight:700;color:{color};margin-bottom:4px;">{title}</div>'
+        f'{subtitle_html}'
+        f'<div style="color:#0f172a;font-size:14px;line-height:1.8;">{inner_html}</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+
 SPEAKER_STYLE = {
     "agent": ("설계사", "#eff6ff", "#93c5fd", "#1d4ed8"),
     "customer": ("고객", "#f8fafc", "#cbd5e1", "#334155"),
@@ -402,13 +427,24 @@ def main() -> None:
             st.markdown(bubbles, unsafe_allow_html=True)
 
         existing = case_data.get("existing_contract", {})
-        with st.expander(f"기존 계약 — {existing.get('product_name', '')} ({existing.get('source_id', '')})", expanded=True):
-            render_fields(existing.get("fields", {}))
+        render_contract_card(
+            f"기존 계약 — {existing.get('product_name', '')}",
+            existing.get("source_id", ""),
+            "#d97706",
+            field_rows_html(existing.get("fields", {})),
+        )
 
         new_product = case_data.get("new_product", {})
-        with st.expander(f"신규 상품 — {new_product.get('product_name', '')} ({new_product.get('source_id', '')})", expanded=True):
-            for loc, doc in new_product.get("documents", {}).items():
-                st.markdown(f"- `{loc}`: {doc.get('text', '')}")
+        new_product_html = "".join(
+            f'<div>• <b>{loc}</b>: {doc.get("text", "")}</div>'
+            for loc, doc in new_product.get("documents", {}).items()
+        )
+        render_contract_card(
+            f"신규 상품 — {new_product.get('product_name', '')}",
+            new_product.get("source_id", ""),
+            "#059669",
+            new_product_html,
+        )
 
     st.divider()
     if st.button("최종 확정", type="primary", use_container_width=True):
