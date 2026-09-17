@@ -49,24 +49,24 @@ WON_ITEMS = {
     "coverage_items.cancer_diagnosis", "coverage_items.cerebro_cardiac_diagnosis",
 }
 
-# 앱 전체가 공유하는 색상 팔레트 — 차분한 블루~바이올렛~틸 계열로 서로 다르되
-# 어울리는 몇 개만 쓴다(채도·톤을 비슷하게 맞춰 튀지 않게). 빨강(ALERT)만 팔레트
+# 색상 톤을 "메인(무채색) + 포인트(딥 네이비)" 두 가지로 제한한다.
+# 포인트 컬러는 1순위 요소(최종 확정 버튼)와 2순위의 강조 지점(신규 상품
+# 타이틀)에만 쓰고, 나머지 80%는 전부 중립 회색이다. 빨강(ALERT)만 팔레트
 # 밖의 예외색이며 Conflict처럼 실제 확인이 필요한 경우에만 쓴다.
-ACCENT = "#4f46e5"           # 인디고 — 주요 액션, 신규 정보 강조
-ACCENT_SECONDARY = "#0d9488"  # 틸 — 인디고와 같은 톤의 보조색
-ACCENT_TERTIARY = "#7c3aed"   # 바이올렛 — 인디고와 인접한 보조색
+POINT = "#1e3a8a"         # 딥 네이비 — 최종 확정 버튼, 신규 상품 타이틀에만
 NEUTRAL = "#64748b"
 NEUTRAL_DARK = "#334155"
+NEUTRAL_BORDER = "#e2e8f0"
+NEUTRAL_BG = "#f8fafc"
 ALERT = "#dc2626"
 
-# 유형별 색상은 "좋다/나쁘다"가 아니라 "변화의 성격"만 구분한다(값 변화 vs 기간
-# 변화). 색 자체가 유불리를 뜻하지 않도록 인디고/바이올렛처럼 같은 톤 계열
-# 안에서만 다르게 쓴다.
+# 변화 유형 배지는 전부 중립색이다 — "좋다/나쁘다"도, 유형 간 우열도 암시하지
+# 않도록 색은 통일하고 텍스트로만 구분한다.
 DELTA_BADGES = {
-    "decrease": ("감소", ACCENT),
-    "increase": ("증가", ACCENT),
-    "shortened": ("단축", ACCENT_TERTIARY),
-    "extended": ("연장", ACCENT_TERTIARY),
+    "decrease": ("감소", NEUTRAL_DARK),
+    "increase": ("증가", NEUTRAL_DARK),
+    "shortened": ("단축", NEUTRAL_DARK),
+    "extended": ("연장", NEUTRAL_DARK),
     "removed": ("삭제", NEUTRAL_DARK),
     "unchanged": ("변경없음", NEUTRAL),
 }
@@ -207,12 +207,17 @@ def field_rows_html(data: dict, indent: int = 0) -> str:
     return "".join(rows)
 
 
-def render_contract_card(title: str, subtitle: str, color: str, inner_html: str) -> None:
-    subtitle_html = f'<div style="color:#64748b;font-size:12.5px;margin-bottom:8px;">{subtitle}</div>' if subtitle else ""
+def render_contract_card(title: str, subtitle: str, highlight: bool, inner_html: str) -> None:
+    # 톤온톤: 테두리는 항상 중립색으로 맞추고, highlight(신규 상품)일 때만
+    # 배경을 아주 옅은 포인트색으로 깔고 타이틀에 포인트색을 준다.
+    title_color = POINT if highlight else NEUTRAL_DARK
+    bg = f"{POINT}0d" if highlight else NEUTRAL_BG
+    border_left = POINT if highlight else NEUTRAL_BORDER
+    subtitle_html = f'<div style="color:{NEUTRAL};font-size:12.5px;margin-bottom:8px;">{subtitle}</div>' if subtitle else ""
     st.markdown(
-        f'<div style="background:{color}0d;border:1px solid {color}55;border-left:4px solid {color};'
+        f'<div style="background:{bg};border:1px solid {NEUTRAL_BORDER};border-left:4px solid {border_left};'
         'border-radius:10px;padding:14px 18px;margin-bottom:14px;">'
-        f'<div style="font-weight:700;color:{color};margin-bottom:4px;">{title}</div>'
+        f'<div style="font-weight:700;color:{title_color};margin-bottom:4px;">{title}</div>'
         f'{subtitle_html}'
         f'<div style="color:#0f172a;font-size:14px;line-height:1.8;">{inner_html}</div>'
         '</div>',
@@ -221,8 +226,8 @@ def render_contract_card(title: str, subtitle: str, color: str, inner_html: str)
 
 
 SPEAKER_STYLE = {
-    "agent": ("설계사", "#eef2ff", ACCENT, ACCENT),
-    "customer": ("고객", "#f8fafc", "#cbd5e1", NEUTRAL_DARK),
+    "agent": ("설계사", NEUTRAL_BG, NEUTRAL_BORDER, NEUTRAL_DARK),
+    "customer": ("고객", "#ffffff", NEUTRAL_BORDER, NEUTRAL_DARK),
 }
 
 
@@ -443,7 +448,7 @@ def main() -> None:
         render_contract_card(
             f"기존 계약 — {existing.get('product_name', '')}",
             existing.get("source_id", ""),
-            NEUTRAL,
+            False,
             field_rows_html(existing.get("fields", {})),
         )
 
@@ -455,7 +460,7 @@ def main() -> None:
         render_contract_card(
             f"신규 상품 — {new_product.get('product_name', '')}",
             new_product.get("source_id", ""),
-            ACCENT_SECONDARY,
+            True,
             new_product_html,
         )
 
