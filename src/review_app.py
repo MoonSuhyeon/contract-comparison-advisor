@@ -49,20 +49,24 @@ WON_ITEMS = {
     "coverage_items.cancer_diagnosis", "coverage_items.cerebro_cardiac_diagnosis",
 }
 
-# 앱 전체가 공유하는 색상 팔레트 — 강조색 하나(ACCENT) + 중립 회색만 쓴다.
-# 빨강/주황(경고색)은 팔레트에 없고 Conflict·Unknown 알림에서만 예외적으로 쓴다.
-ACCENT = "#4f46e5"
+# 앱 전체가 공유하는 색상 팔레트 — 차분한 블루~바이올렛~틸 계열로 서로 다르되
+# 어울리는 몇 개만 쓴다(채도·톤을 비슷하게 맞춰 튀지 않게). 빨강(ALERT)만 팔레트
+# 밖의 예외색이며 Conflict처럼 실제 확인이 필요한 경우에만 쓴다.
+ACCENT = "#4f46e5"           # 인디고 — 주요 액션, 신규 정보 강조
+ACCENT_SECONDARY = "#0d9488"  # 틸 — 인디고와 같은 톤의 보조색
+ACCENT_TERTIARY = "#7c3aed"   # 바이올렛 — 인디고와 인접한 보조색
 NEUTRAL = "#64748b"
 NEUTRAL_DARK = "#334155"
 ALERT = "#dc2626"
 
-# 유형별 색상은 "좋다/나쁘다"가 아니라 "변화가 있었는가"만 구분한다(같은 강조색),
-# 실제 변화 종류(감소/증가/단축 등)는 색이 아니라 배지 텍스트로 구분한다.
+# 유형별 색상은 "좋다/나쁘다"가 아니라 "변화의 성격"만 구분한다(값 변화 vs 기간
+# 변화). 색 자체가 유불리를 뜻하지 않도록 인디고/바이올렛처럼 같은 톤 계열
+# 안에서만 다르게 쓴다.
 DELTA_BADGES = {
     "decrease": ("감소", ACCENT),
     "increase": ("증가", ACCENT),
-    "shortened": ("단축", ACCENT),
-    "extended": ("연장", ACCENT),
+    "shortened": ("단축", ACCENT_TERTIARY),
+    "extended": ("연장", ACCENT_TERTIARY),
     "removed": ("삭제", NEUTRAL_DARK),
     "unchanged": ("변경없음", NEUTRAL),
 }
@@ -451,7 +455,7 @@ def main() -> None:
         render_contract_card(
             f"신규 상품 — {new_product.get('product_name', '')}",
             new_product.get("source_id", ""),
-            ACCENT,
+            ACCENT_SECONDARY,
             new_product_html,
         )
 
