@@ -2,7 +2,7 @@
 Phase 2 (⑧ 자동 평가기): schema/validation_rules.md의 규칙을 구현한다.
 GT(data/tc0X_data.json의 ground_truth)와 AI Output(results/structured/TC-XX.json)을 대조.
 
-매칭 키(§0, C6_설계_확정본.md §3-4): source_id + source_location.
+매칭 키(§0, 설계_확정본.md §3-4): source_id + source_location.
 item 문자열은 표시명일 뿐 매칭에 쓰지 않는다 — TC-01 실행에서 실제로 필요성이 확인된 규칙.
 """
 from __future__ import annotations
