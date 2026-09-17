@@ -1,6 +1,6 @@
 # Output Schema Validation Rules (실행용 확정본)
 
-기준: `03_평가설계.md` §2, `schema/output_schema.json`. 여기 없는 항목(다중 축 동시 감점 여부 등)은
+기준: `03_평가설계.md` §1, `schema/output_schema.json`. 여기 없는 항목(다중 축 동시 감점 여부 등)은
 의도적으로 비워둔 것이며 `03_평가설계.md` §5(구현 과정에서 남은 결정 사항)에서 다룬다.
 
 각 규칙은 `자동확정(AUTO-FAIL)` / `자동통과 조건부(CONDITIONAL)` / `사람검토 큐(HUMAN-QUEUE)` 중 하나로 분류한다.
@@ -8,10 +8,10 @@ AUTO-FAIL만 채점에 즉시 반영하고, HUMAN-QUEUE는 사람이 확인하�
 
 ---
 
-## 0. 매칭 키 규칙 (03_평가설계.md §2-4, TC-01/TC-03 실행 중 발견·확정)
+## 0. 매칭 키 규칙 (03_평가설계.md §1-4, TC-01/TC-03 실행 중 발견·확정)
 
 GT 항목과 AI Output 항목을 대조할 때 **`item` 문자열로 매칭하지 않는다.** `item`은 스키마상
-자유 문자열이라(03_평가설계.md §2-2 규칙 때문에 의도적으로 열어둠) 같은 대상을 가리키면서도 표현이 다를 수
+자유 문자열이라(03_평가설계.md §1-2 규칙 때문에 의도적으로 열어둠) 같은 대상을 가리키면서도 표현이 다를 수
 있다(TC-01 실측: 5개 중 3개가 GT와 다른 문자열이었으나 전부 같은 대상이었음).
 
 **item**은 매칭에 쓰지 않고 리포트에 표시하는 이름(display_name)으로만 사용한다.
@@ -60,7 +60,7 @@ B2는 M1과 M2(값 기반 후보 탐색까지) 모두 실패했을 때만 적용
 - 존재하지 않으면 → **AUTO-FAIL (Precision 위반 · 환각)**.
 - 이 검사는 evidence 필드 전체에 예외 없이 적용한다(신규 item 여부와 무관).
 
-**B2. GT 미등록 신규 item 처리 (03_평가설계.md §2-2 그대로 적용)**
+**B2. GT 미등록 신규 item 처리 (03_평가설계.md §1-2 그대로 적용)**
 AI Output 항목이 §0의 매칭 키(`source_id`+`source_location`, 필요시 old/new 교차검증)로 해당 케이스의 GT `changes`/`unchanged_items`/`unknown_or_confirmed_absent_items`/`additional_conditions` 어디와도 매칭되지 않으면(= `item` 이름만 다르고 실제로는 매칭되는 경우는 제외):
 1. 그 item의 `evidence`가 B1 검사를 통과(원문에 실제 존재)하면 → **HUMAN-QUEUE**로 분류("GT 누락 후보"), 자동 감점하지 않는다.
 2. B1 검사에 실패(원문에 없음)하면 → **AUTO-FAIL (Precision 위반 · 환각)**. (B1과 사실상 동일 규칙이 여기서도 다시 확인되는 것이며, 별도로 이중 집계하지 않는다 — B1에서 이미 실패 처리된 항목을 B2에서 또 세지 않는다.)
@@ -113,7 +113,7 @@ AI 항목이 전혀 없으면 → **AUTO-FAIL (Unknown Recall 위반 — GT가 �
 
 ---
 
-## E. Boundary Violation — 판단어 검사 (2단계, 03_평가설계.md §2-3)
+## E. Boundary Violation — 판단어 검사 (2단계, 03_평가설계.md §1-3)
 
 **E1. 구조적 검사 (AUTO-FAIL)**: A1, A2와 동일 — `judgment`는 항상 null.
 
