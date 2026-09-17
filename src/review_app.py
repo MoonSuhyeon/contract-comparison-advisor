@@ -49,11 +49,13 @@ WON_ITEMS = {
     "coverage_items.cancer_diagnosis", "coverage_items.cerebro_cardiac_diagnosis",
 }
 
-# 색상 톤을 "메인(무채색) + 포인트(딥 네이비)" 두 가지로 제한한다.
-# 포인트 컬러는 1순위 요소(최종 확정 버튼)와 2순위의 강조 지점(신규 상품
-# 타이틀)에만 쓰고, 나머지 80%는 전부 중립 회색이다. 빨강(ALERT)만 팔레트
-# 밖의 예외색이며 Conflict처럼 실제 확인이 필요한 경우에만 쓴다.
-POINT = "#1e3a8a"         # 딥 네이비 — 최종 확정 버튼, 신규 상품 타이틀에만
+# 색상 톤을 "메인(무채색) + 포인트(딥 네이비) + 잉크(검정)" 세 가지로 제한한다.
+# 포인트 컬러는 1순위 요소(최종 확정 버튼)와 신규 상품 강조에, 잉크(검정)는
+# 기존 계약처럼 "무게감은 있지만 새로운 게 아닌" 정보를 강조할 때 쓴다.
+# 배지·말풍선 등 나머지 80%는 전부 중립 회색이다. 빨강(ALERT)만 팔레트 밖의
+# 예외색이며 Conflict처럼 실제 확인이 필요한 경우에만 쓴다.
+POINT = "#1e3a8a"         # 딥 네이비 — 최종 확정 버튼, 신규 상품 강조
+INK = "#0f172a"           # 검정에 가까운 잉크색 — 기존 계약 강조
 NEUTRAL = "#64748b"
 NEUTRAL_DARK = "#334155"
 NEUTRAL_BORDER = "#e2e8f0"
@@ -207,12 +209,13 @@ def field_rows_html(data: dict, indent: int = 0) -> str:
     return "".join(rows)
 
 
-def render_contract_card(title: str, subtitle: str, highlight: bool, inner_html: str) -> None:
-    # 톤온톤: 테두리는 항상 중립색으로 맞추고, highlight(신규 상품)일 때만
-    # 배경을 아주 옅은 포인트색으로 깔고 타이틀에 포인트색을 준다.
-    title_color = POINT if highlight else NEUTRAL_DARK
-    bg = f"{POINT}0d" if highlight else NEUTRAL_BG
-    border_left = POINT if highlight else NEUTRAL_BORDER
+def render_contract_card(title: str, subtitle: str, accent: str, inner_html: str) -> None:
+    # 테두리는 항상 중립색으로 맞추고, 좌측 색상바·배경 톤·타이틀에만 accent를
+    # 옅게 입힌다 — 기존 계약(INK)과 신규 상품(POINT) 둘 다 강조하되 성격이
+    # 다른 색을 써서 "어느 쪽이 새 정보인지"가 헷갈리지 않게 한다.
+    title_color = accent
+    bg = f"{accent}0d"
+    border_left = accent
     subtitle_html = f'<div style="color:{NEUTRAL};font-size:12.5px;margin-bottom:8px;">{subtitle}</div>' if subtitle else ""
     st.markdown(
         f'<div style="background:{bg};border:1px solid {NEUTRAL_BORDER};border-left:4px solid {border_left};'
@@ -448,7 +451,7 @@ def main() -> None:
         render_contract_card(
             f"기존 계약 — {existing.get('product_name', '')}",
             existing.get("source_id", ""),
-            False,
+            INK,
             field_rows_html(existing.get("fields", {})),
         )
 
@@ -460,7 +463,7 @@ def main() -> None:
         render_contract_card(
             f"신규 상품 — {new_product.get('product_name', '')}",
             new_product.get("source_id", ""),
-            True,
+            POINT,
             new_product_html,
         )
 
