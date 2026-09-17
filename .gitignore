@@ -4,7 +4,3 @@ __pycache__/
 venv/
 .env
 *.log
-
-# 내부 작업 문서 — 레포에 올리지 않음
-PLAN.md
-EMAIL_06_종합정리.md
