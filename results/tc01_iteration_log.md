@@ -26,7 +26,7 @@ Phase 1(AI 기능 구현)에서 실제로 발견한 첫 번째 구조적 오류�
 ## 결정: A안(강화판) 채택, B안(단일 배열 comparisons) 보류
 
 B안(changes/unchanged_items를 comparisons 하나로 합치고 delta 값으로 사후 분리)이 이 실패
-유형을 구조적으로 원천 차단하지만, 이미 확정된 평가 설계(`03_설계.md` §3: changes=
+유형을 구조적으로 원천 차단하지만, 이미 확정된 평가 설계(`03_평가설계.md` §3: changes=
 Recall 분모, unchanged_items=Precision 과검출 체크포인트)를 함께 흔든다. 첫 실측 오류 1건으로
 확정된 평가 설계까지 바꾸는 건 성급하다고 판단해 보류한다. 대신:
 
