@@ -118,7 +118,7 @@ contract-comparison-advisor/
 ├── 03_평가설계.md              # 평가 규칙·실행범위 확정 이력
 ├── 04_검증결과.md              # 검증 요약(버그·baseline·한계)
 ├── 05_업무효과검증_설계.md      # 업무 효과 검증 설계(실행 전)
-├── 06_종합정리.md                # 최종 정리
+├── 06_종합정리.md               # 종합정리
 ├── requirements.txt
 ├── .env.example
 ├── prompt/
