@@ -115,7 +115,7 @@
           "note": { "type": ["string", "null"], "description": "보충 설명. 판단어 사용 금지(§3-3 텍스트 스캔 대상)." },
           "judgment": { "type": "null" }
         },
-        "required": ["item", "old", "new", "delta_type", "status", "evidence", "source_id", "source_location", "judgment"]
+        "required": ["item", "old", "new", "delta_type", "status", "evidence", "source_id", "source_location", "linked_need_id", "judgment"]
       },
 
       "unknownItem": {
@@ -145,7 +145,7 @@
           },
           "judgment": { "type": "null" }
         },
-        "required": ["item", "status", "evidence", "reason", "judgment"]
+        "required": ["item", "status", "evidence", "reason", "linked_need_id", "judgment"]
       },
 
       "conflictItem": {
