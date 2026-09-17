@@ -182,6 +182,24 @@ def render_fields(data: dict, indent: int = 0) -> None:
             st.markdown(f"{prefix} **{key}**: {value}")
 
 
+SPEAKER_STYLE = {
+    "agent": ("설계사", "#eff6ff", "#93c5fd", "#1d4ed8"),
+    "customer": ("고객", "#f8fafc", "#cbd5e1", "#334155"),
+}
+
+
+def chat_bubble_html(speaker: str, text: str, msg_id: str) -> str:
+    label, bg, accent, label_color = SPEAKER_STYLE.get(speaker, (speaker, "#f8fafc", "#cbd5e1", "#334155"))
+    return (
+        f'<div style="background:{bg};border:1px solid {accent}66;border-left:4px solid {accent};'
+        'border-radius:8px;padding:10px 14px;margin-bottom:8px;">'
+        f'<div style="font-size:12px;font-weight:700;color:{label_color};margin-bottom:4px;">{label}</div>'
+        f'<div style="color:#0f172a;font-size:14.5px;">{text}</div>'
+        f'<div style="font-size:11px;color:#94a3b8;margin-top:4px;">{msg_id}</div>'
+        '</div>'
+    )
+
+
 def render_review_list(items: list[dict], box, key_prefix: str) -> None:
     for item in items:
         with box(f"**{item['항목']}**" if item["항목"] else "(항목 미지정)"):
@@ -377,10 +395,11 @@ def main() -> None:
             render_fields(case_data.get("customer", {}))
 
         with st.expander("상담 내용", expanded=True):
-            for msg in case_data.get("conversation", {}).get("messages", []):
-                with st.chat_message(msg["speaker"]):
-                    st.write(msg["text"])
-                    st.caption(msg["message_id"])
+            bubbles = "".join(
+                chat_bubble_html(msg["speaker"], msg["text"], msg["message_id"])
+                for msg in case_data.get("conversation", {}).get("messages", [])
+            )
+            st.markdown(bubbles, unsafe_allow_html=True)
 
         existing = case_data.get("existing_contract", {})
         with st.expander(f"기존 계약 — {existing.get('product_name', '')} ({existing.get('source_id', '')})", expanded=True):
