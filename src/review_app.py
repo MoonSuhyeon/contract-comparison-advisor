@@ -255,6 +255,7 @@ div[data-testid="stExpander"] {
     border: 1px solid #e2e8f0;
     border-radius: 10px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    margin-bottom: 14px;
 }
 div[data-testid="stMetric"] {
     background: #fff;
@@ -372,21 +373,21 @@ def main() -> None:
             st.session_state[table_key] = edited
 
     with tab_source:
-        st.markdown("**고객 정보**")
-        render_fields(case_data.get("customer", {}))
+        with st.expander("고객 정보", expanded=True):
+            render_fields(case_data.get("customer", {}))
 
-        st.markdown("**상담 내용**")
-        for msg in case_data.get("conversation", {}).get("messages", []):
-            st.markdown(f"- `[{msg['message_id']}]` **{msg['speaker']}**: {msg['text']}")
+        with st.expander("상담 내용", expanded=True):
+            for msg in case_data.get("conversation", {}).get("messages", []):
+                st.markdown(f"- `[{msg['message_id']}]` **{msg['speaker']}**: {msg['text']}")
 
         existing = case_data.get("existing_contract", {})
-        st.markdown(f"**기존 계약** — {existing.get('product_name', '')} (`{existing.get('source_id', '')}`)")
-        render_fields(existing.get("fields", {}))
+        with st.expander(f"기존 계약 — {existing.get('product_name', '')} ({existing.get('source_id', '')})", expanded=True):
+            render_fields(existing.get("fields", {}))
 
         new_product = case_data.get("new_product", {})
-        st.markdown(f"**신규 상품** — {new_product.get('product_name', '')} (`{new_product.get('source_id', '')}`)")
-        for loc, doc in new_product.get("documents", {}).items():
-            st.markdown(f"- `{loc}`: {doc.get('text', '')}")
+        with st.expander(f"신규 상품 — {new_product.get('product_name', '')} ({new_product.get('source_id', '')})", expanded=True):
+            for loc, doc in new_product.get("documents", {}).items():
+                st.markdown(f"- `{loc}`: {doc.get('text', '')}")
 
     st.divider()
     if st.button("최종 확정", type="primary", use_container_width=True):
