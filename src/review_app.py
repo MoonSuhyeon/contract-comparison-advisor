@@ -115,6 +115,16 @@ def session_key(case_id: str, condition: str, name: str) -> str:
     return f"{case_id}_{condition}_{name}"
 
 
+def render_fields(data: dict, indent: int = 0) -> None:
+    for key, value in data.items():
+        prefix = "  " * indent + "-"
+        if isinstance(value, dict):
+            st.markdown(f"{prefix} **{key}**")
+            render_fields(value, indent + 1)
+        else:
+            st.markdown(f"{prefix} **{key}**: {value}")
+
+
 def main() -> None:
     st.set_page_config(page_title="계약 비교 검토", layout="wide")
     st.title("계약 비교 결과 검토")
@@ -131,12 +141,21 @@ def main() -> None:
         st.session_state[start_key] = time.time()
 
     with st.expander("원문 자료 (상담 · 기존 계약 · 신규 상품)", expanded=(condition_code == "A")):
-        st.write("**고객 정보**", case_data.get("customer", {}))
-        st.write("**상담 내용**")
+        st.markdown("**고객 정보**")
+        render_fields(case_data.get("customer", {}))
+
+        st.markdown("**상담 내용**")
         for msg in case_data.get("conversation", {}).get("messages", []):
-            st.write(f"- [{msg['message_id']}] {msg['speaker']}: {msg['text']}")
-        st.write("**기존 계약**", case_data.get("existing_contract", {}))
-        st.write("**신규 상품**", case_data.get("new_product", {}))
+            st.markdown(f"- `[{msg['message_id']}]` **{msg['speaker']}**: {msg['text']}")
+
+        existing = case_data.get("existing_contract", {})
+        st.markdown(f"**기존 계약** — {existing.get('product_name', '')} (`{existing.get('source_id', '')}`)")
+        render_fields(existing.get("fields", {}))
+
+        new_product = case_data.get("new_product", {})
+        st.markdown(f"**신규 상품** — {new_product.get('product_name', '')} (`{new_product.get('source_id', '')}`)")
+        for loc, doc in new_product.get("documents", {}).items():
+            st.markdown(f"- `{loc}`: {doc.get('text', '')}")
 
     table_key = session_key(case_id, condition_code, "table")
     if table_key not in st.session_state:
