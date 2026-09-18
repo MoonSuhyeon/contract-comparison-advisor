@@ -1,0 +1,76 @@
+{
+  "run_id": "863c9ce9",
+  "case_id": "TC-15",
+  "condition": "B",
+  "start_time": 1789699647.7273338,
+  "end_time": 1789699678.0751882,
+  "duration_sec": 30.3,
+  "ai_suggestion_count": 5,
+  "human_edit_count": 0,
+  "human_added_count": 0,
+  "conflict_review_count": 0,
+  "unknown_review_count": 0,
+  "final_table": [
+    {
+      "_row_id": "change-0",
+      "구분": "변경",
+      "항목": "premium",
+      "기존값": "118000",
+      "신규값": "96000",
+      "변화방향": "decrease",
+      "근거": "월 보험료 96,000원.",
+      "상태": "AI 제안"
+    },
+    {
+      "_row_id": "change-1",
+      "구분": "변경",
+      "항목": "coverage_items.cancer_diagnosis.amount",
+      "기존값": "30000000",
+      "신규값": "30000000",
+      "변화방향": "unchanged",
+      "근거": "암 진단비 3,000만원 (경계성종양·상피내암 제외, 침습암만 해당).",
+      "상태": "AI 제안"
+    },
+    {
+      "_row_id": "change-2",
+      "구분": "변경",
+      "항목": "coverage_items.cancer_diagnosis.diagnosis_scope",
+      "기존값": "암(경계성종양, 상피내암 포함)",
+      "신규값": "경계성종양·상피내암 제외, 침습암만 해당",
+      "변화방향": "scope_narrowed",
+      "근거": "암 진단비 3,000만원 (경계성종양·상피내암 제외, 침습암만 해당).",
+      "상태": "AI 제안"
+    },
+    {
+      "_row_id": "unchanged-0",
+      "구분": "변경없음",
+      "항목": "coverage_items.accident_disability",
+      "기존값": "10000000",
+      "신규값": "10000000",
+      "변화방향": "unchanged",
+      "근거": "상해장해 보장금액 500만원.",
+      "상태": "AI 제안"
+    },
+    {
+      "_row_id": "unchanged-1",
+      "구분": "변경없음",
+      "항목": "exclusion_clause.cancer",
+      "기존값": "가입 후 90일 면책",
+      "신규값": "가입 후 90일 면책",
+      "변화방향": "unchanged",
+      "근거": "가입 후 90일 면책",
+      "상태": "AI 제안"
+    }
+  ],
+  "final_conflicts": [],
+  "final_unknowns": [
+    {
+      "_id": "unknown-0",
+      "항목": "exclusion_clause.cancer",
+      "설명": "면책 조항 내용은 명확하지 않음. 문서의 completeness가 'partial' 상태.",
+      "출처": "/",
+      "checked": false,
+      "note": ""
+    }
+  ]
+}

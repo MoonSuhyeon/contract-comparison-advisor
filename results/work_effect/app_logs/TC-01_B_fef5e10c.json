@@ -1,0 +1,67 @@
+{
+  "run_id": "fef5e10c",
+  "case_id": "TC-01",
+  "condition": "B",
+  "start_time": 1789696689.0432994,
+  "end_time": 1789696749.797256,
+  "duration_sec": 60.8,
+  "ai_suggestion_count": 5,
+  "human_edit_count": 0,
+  "human_added_count": 0,
+  "conflict_review_count": 0,
+  "unknown_review_count": 0,
+  "final_table": [
+    {
+      "_row_id": "change-0",
+      "구분": "변경",
+      "항목": "premium",
+      "기존값": "150000",
+      "신규값": "110000",
+      "변화방향": "decrease",
+      "근거": "월 보험료 110,000원",
+      "상태": "AI 제안"
+    },
+    {
+      "_row_id": "change-1",
+      "구분": "변경",
+      "항목": "renewal_period",
+      "기존값": "10년",
+      "신규값": "5년",
+      "변화방향": "shortened",
+      "근거": "갱신주기 5년.",
+      "상태": "AI 제안"
+    },
+    {
+      "_row_id": "change-2",
+      "구분": "변경",
+      "항목": "surrender_value_at_10y",
+      "기존값": "62%",
+      "신규값": "31%",
+      "변화방향": "decrease",
+      "근거": "10년납 기준 해지환급률 31%.",
+      "상태": "AI 제안"
+    },
+    {
+      "_row_id": "unchanged-0",
+      "구분": "변경없음",
+      "항목": "coverage_items.cancer_diagnosis",
+      "기존값": "30000000",
+      "신규값": "30000000",
+      "변화방향": "unchanged",
+      "근거": "암 진단비 3,000만원 (최초 1회 지급).",
+      "상태": "AI 제안"
+    },
+    {
+      "_row_id": "unchanged-1",
+      "구분": "변경없음",
+      "항목": "coverage_items.cerebro_cardiac_diagnosis",
+      "기존값": "15000000",
+      "신규값": "",
+      "변화방향": "removed",
+      "근거": "뇌혈관질환·급성심근경색 진단비 특약: 목록에 없음.",
+      "상태": "AI 제안"
+    }
+  ],
+  "final_conflicts": [],
+  "final_unknowns": []
+}

@@ -25,18 +25,24 @@
       "evidence": "월 보험료 82,000원.",
       "source_id": "product_B",
       "source_location": "product_brochure_p1",
+      "linked_need_id": null,
+      "note": null,
       "judgment": null
     }
   ],
   "unchanged_items": [],
   "unknowns": [
     {
-      "item": "no_no_claim_discount",
-      "status": "confirmed_absent",
-      "evidence": "(무사고 관련 할인 특약은 포함되어 있지 않음)",
-      "source_id": "product_B",
-      "source_location": "full_feature_list",
-      "reason": "신규 상품의 완전한 특약 목록에서 무사고 할인 특약이 존재하지 않음.",
+      "item": "no_claim_discount",
+      "old": null,
+      "new": null,
+      "status": "unknown",
+      "evidence": null,
+      "source_id": null,
+      "source_location": null,
+      "reason": "무사고 할인 특약이 존재하는지 여부를 확인할 수 있는 정보가 없음.",
+      "linked_need_id": "need_01",
+      "depends_on": null,
       "judgment": null
     }
   ],
@@ -45,9 +51,11 @@
   "judgment": null,
   "_usage": {
     "model": "gpt-4o-mini",
-    "prompt_tokens": 5288,
-    "completion_tokens": 276,
-    "attempts": 2
+    "prompt_tokens": 5043,
+    "completion_tokens": 283,
+    "total_tokens": 5326,
+    "elapsed_seconds": 3.16,
+    "attempts": 1
   },
   "_case_id": "TC-10"
 }

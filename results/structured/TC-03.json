@@ -2,21 +2,23 @@
   "customer_needs": [
     {
       "need_id": "need_01",
-      "need_summary": "기존 계약의 면책 기간과 신규 상품 면책 기간 확인",
+      "need_summary": "기존 계약의 면책기간과 신규 상품의 면책기간 비교",
       "source_message_ids": [
         "msg_03_01",
+        "msg_03_02",
         "msg_03_03",
         "msg_03_04"
       ],
       "evidence": [
         "제가 예전에 가입할 때 자살이나 특정 질병 관련해서 면책기간 있다고 들었던 거 같은데, 이번에 새로 나온 상품도 그런 게 있나요?",
+        "아, 확인해보겠습니다. 지금 갖고 계신 상품은 자살 관련해서 가입 후 1년 이내 면책이고, 특정 질병은 90일 면책기간이 있으시네요.",
         "네, 그거요. 새 상품도 똑같은가요?",
         "음... 제가 지금 갖고 있는 신규 상품 안내서에는 면책 관련 내용이 따로 안 나와 있네요. 아마 비슷하지 않을까 싶은데, 정확하게는 확인이 필요할 것 같습니다."
       ]
     },
     {
       "need_id": "need_02",
-      "need_summary": "기존 계약과 신규 상품의 보험료 차이 확인",
+      "need_summary": "보험료 차이 확인",
       "source_message_ids": [
         "msg_03_05",
         "msg_03_06"
@@ -37,50 +39,42 @@
       "evidence": "보험료는 지금 95,000원에서 신규 상품은 88,000원으로 조정됩니다.",
       "source_id": "contract_A",
       "source_location": "msg_03_06",
+      "linked_need_id": "need_02",
+      "judgment": null
+    },
+    {
+      "item": "exclusion_clause",
+      "old": "가입 후 1년 이내 면책, 90일 면책기간",
+      "new": null,
+      "delta_type": "removed",
+      "status": "confirmed",
+      "evidence": "(본 안내서는 상품 주요 특징 요약본이며, 면책조항 등 세부 약관 내용은 포함하지 않습니다.)",
+      "source_id": "product_B",
+      "source_location": "product_brochure_p1",
+      "linked_need_id": "need_01",
       "judgment": null
     }
   ],
-  "unchanged_items": [
+  "unchanged_items": [],
+  "unknowns": [
     {
       "item": "exclusion_clause.suicide",
-      "old": "가입 후 1년 이내 면책",
-      "new": "가입 후 1년 이내 면책",
-      "delta_type": "unchanged",
-      "status": "confirmed",
-      "evidence": "가입 후 1년 이내 면책",
-      "source_id": "contract_A",
-      "source_location": "existing_contract.fields.exclusion_clause.suicide",
+      "old": null,
+      "new": null,
+      "status": "unknown",
+      "evidence": null,
+      "reason": "신규 상품 안내서에 면책 관련 내용이 포함되어 있지 않아 확인할 수 없음.",
+      "linked_need_id": "need_01",
       "judgment": null
     },
     {
       "item": "exclusion_clause.specific_disease",
-      "old": "90일 면책기간",
-      "new": "90일 면책기간",
-      "delta_type": "unchanged",
-      "status": "confirmed",
-      "evidence": "90일 면책기간",
-      "source_id": "contract_A",
-      "source_location": "existing_contract.fields.exclusion_clause.specific_disease",
-      "judgment": null
-    }
-  ],
-  "unknowns": [
-    {
-      "item": "exclusion_clause",
-      "reason": "신규 상품 관련 면책기간 정보가 문서에 명시되어 있지 않음",
+      "old": null,
+      "new": null,
       "status": "unknown",
       "evidence": null,
-      "source_id": "product_B",
-      "source_location": "product_brochure_p1",
-      "judgment": null
-    },
-    {
-      "item": "exclusion_clause.suicide",
-      "reason": "신규 상품의 면책 관련 정보 부족",
-      "status": "unknown",
-      "evidence": null,
-      "source_id": "product_B",
-      "source_location": "product_brochure_p1",
+      "reason": "신규 상품 안내서에 면책 관련 내용이 포함되어 있지 않아 확인할 수 없음.",
+      "linked_need_id": "need_01",
       "judgment": null
     }
   ],
@@ -89,8 +83,10 @@
   "judgment": null,
   "_usage": {
     "model": "gpt-4o-mini",
-    "prompt_tokens": 5699,
-    "completion_tokens": 610,
+    "prompt_tokens": 10933,
+    "completion_tokens": 1237,
+    "total_tokens": 12170,
+    "elapsed_seconds": 12.34,
     "attempts": 2
   },
   "_case_id": "TC-03"

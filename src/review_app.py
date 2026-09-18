@@ -97,8 +97,11 @@ def label_for_item(item: str) -> str:
 def format_value(item: str, value) -> str:
     if value is None or value == "":
         return "—"
-    if item in WON_ITEMS and isinstance(value, (int, float)):
-        return f"{int(value):,}원"
+    if item in WON_ITEMS:
+        try:
+            return f"{int(float(value)):,}원"
+        except (TypeError, ValueError):
+            pass
     return str(value)
 
 
@@ -115,12 +118,18 @@ def delta_badge_html(delta_type: str) -> str:
     return badge_html(label, color)
 
 
+def _cell_str(value) -> str:
+    """표 편집기 셀은 문자열 dtype으로 고정한다 — int/str/None이 한 컬럼에 섞이면
+    Streamlit data_editor가 Arrow 직렬화 과정에서 편집을 못 먹는 경우가 있다."""
+    return "" if value is None else str(value)
+
+
 def ai_output_to_comparison_rows(ai: dict) -> list[dict]:
     rows = []
     for i, c in enumerate(ai.get("changes", [])):
         rows.append({
             "_row_id": f"change-{i}", "구분": "변경", "항목": c.get("item", ""),
-            "기존값": c.get("old"), "신규값": c.get("new"),
+            "기존값": _cell_str(c.get("old")), "신규값": _cell_str(c.get("new")),
             "변화방향": c.get("delta_type", ""), "근거": c.get("evidence") or "",
             "상태": "AI 제안",
             "_source_id": c.get("source_id", ""), "_source_location": c.get("source_location", ""),
@@ -129,7 +138,7 @@ def ai_output_to_comparison_rows(ai: dict) -> list[dict]:
     for i, u in enumerate(ai.get("unchanged_items", [])):
         rows.append({
             "_row_id": f"unchanged-{i}", "구분": "변경없음", "항목": u.get("item", ""),
-            "기존값": u.get("old"), "신규값": u.get("new"),
+            "기존값": _cell_str(u.get("old")), "신규값": _cell_str(u.get("new")),
             "변화방향": u.get("delta_type", "unchanged"), "근거": u.get("evidence") or "",
             "상태": "AI 제안",
             "_source_id": u.get("source_id", ""), "_source_location": u.get("source_location", ""),
@@ -371,15 +380,26 @@ def main() -> None:
 
     with st.sidebar:
         st.header("설정")
-        st.markdown("**케이스**")
+        case_id = st.selectbox("케이스", CASES)
         st.caption("테스트 케이스 15개 중 실험 가능하도록 준비를 마친 7개만 여기서 고를 수 있어요.")
-        case_id = st.selectbox("케이스", CASES, label_visibility="collapsed")
-        condition = st.radio("조건", ["A · 원문만 보고 직접 작성", "B · AI 초안 검토"])
+        condition = st.radio("조건", ["A · AI 도움 없이 직접 작성", "B · AI 도움 받아 작성"])
         condition_code = "A" if condition.startswith("A") else "B"
-        if condition_code == "A":
-            st.info("AI 결과 없이 원문만 보고 비교표를 처음부터 작성합니다.")
-        else:
-            st.info("AI가 만든 초안을 확인·수정해서 최종 결과를 만듭니다.")
+        st.caption("AI 유무에 따라 걸리는 시간과 놓치는 변경사항을 비교하기 위한 조건이에요.")
+
+        if st.button("이 세션 새로 시작 (타이머·표 초기화)", use_container_width=True):
+            for name in ("start_time", "table", "unknowns", "conflicts", "original"):
+                st.session_state.pop(session_key(case_id, condition_code, name), None)
+            st.rerun()
+        st.caption("같은 케이스·조건을 다시 처음부터 하고 싶을 때 누르세요 — 0초부터 다시 잽니다.")
+
+    # 케이스·조건 조합이 방금 바뀌었으면(=사이드바에서 새로 선택했으면) 자동으로
+    # 타이머·표를 초기화한다. 표 편집이나 체크박스 클릭 같은 다른 상호작용으로 생기는
+    # 재실행에서는 조합이 그대로라 여기 안 걸린다.
+    current_combo = (case_id, condition_code)
+    if st.session_state.get("_last_combo") != current_combo:
+        for name in ("start_time", "table", "unknowns", "conflicts", "original"):
+            st.session_state.pop(session_key(case_id, condition_code, name), None)
+        st.session_state["_last_combo"] = current_combo
 
     case_data = load_case_data(case_id)
     ai_output = load_ai_output(case_id) if condition_code == "B" else None
@@ -411,6 +431,7 @@ def main() -> None:
     col_conflict, col_unknown = st.columns(2)
     with col_conflict:
         st.markdown("#### Conflict")
+        st.caption("원문 자료끼리 서로 다른 내용을 말하는 항목이에요. 어느 쪽이 맞는지 확인해주세요.")
         if st.session_state[conflicts_key]:
             render_review_list(st.session_state[conflicts_key], st.error, "conflict")
         else:
@@ -423,6 +444,7 @@ def main() -> None:
 
     with col_unknown:
         st.markdown("#### Unknown")
+        st.caption("원문에 정보가 아예 없는 항목이에요. 확인이 필요해요.")
         if st.session_state[unknowns_key]:
             render_review_list(st.session_state[unknowns_key], st.warning, "unknown")
         else:
@@ -452,12 +474,15 @@ def main() -> None:
                     column_config={
                         "구분": st.column_config.SelectboxColumn(options=KIND_OPTIONS),
                         "상태": st.column_config.SelectboxColumn(options=STATUS_OPTIONS),
+                        "기존값": st.column_config.TextColumn(),
+                        "신규값": st.column_config.TextColumn(),
                     },
                     key=f"editor_widget_{case_id}_{condition_code}",
                     use_container_width=True,
                 )
                 st.session_state[table_key] = edited
         else:
+            st.caption("AI 초안 없이 시작합니다 — \"원문 자료\" 탭을 참고해 비교표를 직접 채워주세요.")
             edited = st.data_editor(
                 st.session_state[table_key],
                 num_rows="dynamic",
@@ -465,6 +490,8 @@ def main() -> None:
                 column_config={
                     "구분": st.column_config.SelectboxColumn(options=KIND_OPTIONS),
                     "상태": st.column_config.SelectboxColumn(options=STATUS_OPTIONS),
+                    "기존값": st.column_config.TextColumn(),
+                    "신규값": st.column_config.TextColumn(),
                 },
                 key=f"editor_widget_{case_id}_{condition_code}",
                 use_container_width=True,
@@ -514,7 +541,10 @@ def main() -> None:
         human_edit_count = 0
         human_added_count = 0
         for row in edited_df.to_dict("records"):
-            rid = row.get("_row_id") or ""
+            raw_rid = row.get("_row_id")
+            # data_editor의 "+" 행 추가 기능으로 생긴 새 행은 안 보이는 컬럼(_row_id)이
+            # 빈 문자열이 아니라 NaN이 된다. NaN은 파이썬에서 truthy라 `or ""`로는 안 걸러진다.
+            rid = "" if raw_rid is None or (isinstance(raw_rid, float) and pd.isna(raw_rid)) else str(raw_rid)
             if not rid:
                 if any(str(row.get(c, "")).strip() for c in ("항목", "기존값", "신규값", "근거")):
                     human_added_count += 1

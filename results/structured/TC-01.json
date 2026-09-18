@@ -2,26 +2,24 @@
   "customer_needs": [
     {
       "need_id": "need_01",
-      "need_summary": "보험료를 줄이고싶다",
+      "need_summary": "보험료 부담을 줄이고 싶다.",
       "source_message_ids": [
-        "msg_01_01",
-        "msg_01_04"
+        "msg_01_01"
       ],
       "evidence": [
-        "보험료가 너무 부담돼서요. 좀 줄일 수 있는 방법 없을까요?",
-        "오 그럼 좀 낮아지는 거네요."
+        "보험료가 너무 부담돼서요. 좀 줄일 수 있는 방법 없을까요?"
       ]
     },
     {
       "need_id": "need_02",
-      "need_summary": "보장 내용의 차이 확인",
+      "need_summary": "보장 내용의 변화에 대한 명확한 정보가 필요하다.",
       "source_message_ids": [
         "msg_01_05",
         "msg_01_08"
       ],
       "evidence": [
         "근데 보장 내용은 똑같은 거예요?",
-        "그래도 이게 뭐가 더 좋은 건지 잘 모르겠어요."
+        "정확하게 정리해서 알려주실 수 있어요?"
       ]
     }
   ],
@@ -35,6 +33,7 @@
       "evidence": "월 보험료 110,000원",
       "source_id": "product_B",
       "source_location": "product_brochure_p3",
+      "linked_need_id": "need_01",
       "judgment": null
     },
     {
@@ -46,6 +45,7 @@
       "evidence": "갱신주기 5년.",
       "source_id": "product_B",
       "source_location": "renewal_clause",
+      "linked_need_id": "need_02",
       "judgment": null
     },
     {
@@ -57,6 +57,7 @@
       "evidence": "10년납 기준 해지환급률 31%.",
       "source_id": "product_B",
       "source_location": "surrender_value_table",
+      "linked_need_id": "need_02",
       "judgment": null
     }
   ],
@@ -70,6 +71,7 @@
       "evidence": "암 진단비 3,000만원 (최초 1회 지급).",
       "source_id": "product_B",
       "source_location": "coverage_list",
+      "linked_need_id": null,
       "judgment": null
     },
     {
@@ -81,6 +83,7 @@
       "evidence": "뇌혈관질환·급성심근경색 진단비 특약: 목록에 없음.",
       "source_id": "product_B",
       "source_location": "coverage_list",
+      "linked_need_id": "need_02",
       "judgment": null
     }
   ],
@@ -90,8 +93,10 @@
   "judgment": null,
   "_usage": {
     "model": "gpt-4o-mini",
-    "prompt_tokens": 5845,
-    "completion_tokens": 498,
+    "prompt_tokens": 11309,
+    "completion_tokens": 1025,
+    "total_tokens": 12334,
+    "elapsed_seconds": 11.78,
     "attempts": 2
   },
   "_case_id": "TC-01"

@@ -1,0 +1,54 @@
+{
+  "run_id": "59cac619",
+  "case_id": "TC-03",
+  "condition": "B",
+  "start_time": 1789699208.9941247,
+  "end_time": 1789699250.1043274,
+  "duration_sec": 41.1,
+  "ai_suggestion_count": 2,
+  "human_edit_count": 0,
+  "human_added_count": 0,
+  "conflict_review_count": 0,
+  "unknown_review_count": 0,
+  "final_table": [
+    {
+      "_row_id": "change-0",
+      "구분": "변경",
+      "항목": "premium",
+      "기존값": "95000",
+      "신규값": "88000",
+      "변화방향": "decrease",
+      "근거": "보험료는 지금 95,000원에서 신규 상품은 88,000원으로 조정됩니다.",
+      "상태": "AI 제안"
+    },
+    {
+      "_row_id": "change-1",
+      "구분": "변경",
+      "항목": "exclusion_clause",
+      "기존값": "가입 후 1년 이내 면책, 90일 면책기간",
+      "신규값": "",
+      "변화방향": "removed",
+      "근거": "(본 안내서는 상품 주요 특징 요약본이며, 면책조항 등 세부 약관 내용은 포함하지 않습니다.)",
+      "상태": "AI 제안"
+    }
+  ],
+  "final_conflicts": [],
+  "final_unknowns": [
+    {
+      "_id": "unknown-0",
+      "항목": "exclusion_clause.suicide",
+      "설명": "신규 상품 안내서에 면책 관련 내용이 포함되어 있지 않아 확인할 수 없음.",
+      "출처": "/",
+      "checked": false,
+      "note": ""
+    },
+    {
+      "_id": "unknown-1",
+      "항목": "exclusion_clause.specific_disease",
+      "설명": "신규 상품 안내서에 면책 관련 내용이 포함되어 있지 않아 확인할 수 없음.",
+      "출처": "/",
+      "checked": false,
+      "note": ""
+    }
+  ]
+}

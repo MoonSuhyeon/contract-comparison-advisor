@@ -2,7 +2,7 @@
   "customer_needs": [
     {
       "need_id": "need_01",
-      "need_summary": "해지환급률에 대한 정확한 정보",
+      "need_summary": "해지환급금에 대한 정확한 정보",
       "source_message_ids": [
         "msg_05_03",
         "msg_05_05"
@@ -23,6 +23,7 @@
       "evidence": "월 보험료 90,000원.",
       "source_id": "product_B",
       "source_location": "product_summary_brochure",
+      "linked_need_id": "need_01",
       "judgment": null
     },
     {
@@ -34,18 +35,55 @@
       "evidence": "10년 경과 시점 해지환급률은 35%로 한다.",
       "source_id": "product_B",
       "source_location": "product_terms_detail",
+      "linked_need_id": "need_01",
       "judgment": null
     }
   ],
   "unchanged_items": [],
-  "unknowns": [],
-  "conflicts": [],
+  "unknowns": [
+    {
+      "item": "surrender_value_at_10y",
+      "old": "45%",
+      "new": null,
+      "status": "unknown",
+      "evidence": null,
+      "source_id": null,
+      "source_location": null,
+      "reason": "해지환급률에 대한 정보가 서로 다른 출처에서 제공되고 있어 확정할 수 없음.",
+      "linked_need_id": "need_01",
+      "judgment": null
+    }
+  ],
+  "conflicts": [
+    {
+      "item": "surrender_value_at_10y",
+      "type": "document_conflict",
+      "old": "40%",
+      "new": null,
+      "sources": [
+        {
+          "source_id": "product_B",
+          "source_location": "product_summary_brochure",
+          "evidence": "10년 시점 해지환급률 약 40%."
+        },
+        {
+          "source_id": "product_B",
+          "source_location": "product_terms_detail",
+          "evidence": "10년 경과 시점 해지환급률은 35%로 한다."
+        }
+      ],
+      "description": "해지환급률에 대한 정보가 서로 다른 문서에서 제공되고 있어 확정할 수 없음.",
+      "judgment": null
+    }
+  ],
   "additional_conditions": [],
   "judgment": null,
   "_usage": {
     "model": "gpt-4o-mini",
-    "prompt_tokens": 5273,
-    "completion_tokens": 239,
+    "prompt_tokens": 10685,
+    "completion_tokens": 907,
+    "total_tokens": 11592,
+    "elapsed_seconds": 8.55,
     "attempts": 2
   },
   "_case_id": "TC-05"
