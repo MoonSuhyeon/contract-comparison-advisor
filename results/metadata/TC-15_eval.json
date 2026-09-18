@@ -1,18 +1,32 @@
 {
   "case_id": "TC-15",
-  "recall_hits": 3,
+  "recall_hits": 1,
   "recall_total": 4,
-  "precision_violations": 0,
+  "precision_violations": 1,
   "precision_total": 5,
   "evidence_ungrounded": 0,
   "evidence_total": 6,
   "findings": [
     {
-      "rule": "A11",
+      "rule": "A8",
       "severity": "AUTO-FAIL",
-      "axis": "unknown",
-      "message": "delta_type=unchanged인데 old(가입 후 90일 면책) != new(None) — unknown을 unchanged로 위장했을 가능성",
-      "item_ref": "exclusion_clause.cancer"
+      "axis": "structural",
+      "message": "같은 매칭키가 changes/unchanged_items 양쪽에 존재: ('product_B', 'product_summary_brochure')",
+      "item_ref": ""
+    },
+    {
+      "rule": "H4",
+      "severity": "HUMAN-QUEUE",
+      "axis": "precision",
+      "message": "GT에는 없는 고객 니즈 연결을 AI가 임의로 추가함(linked_need_id='need_02') — GT가 놓친 진짜 연결일 수도, AI의 근거 없는 과잉연결(새로운 형태의 환각)일 수도 있어 사람 확인 필요",
+      "item_ref": "premium"
+    },
+    {
+      "rule": "B2",
+      "severity": "HUMAN-QUEUE",
+      "axis": "precision",
+      "message": "GT 어디에도 매칭 안 됨(M1/M2 모두 실패, evidence는 원문에 존재) — GT 누락 후보로 사람 검토 필요",
+      "item_ref": "coverage_items.cancer_diagnosis.amount"
     },
     {
       "rule": "B2",
@@ -20,6 +34,20 @@
       "axis": "precision",
       "message": "GT 어디에도 매칭 안 됨(M1/M2 모두 실패, evidence는 원문에 존재) — GT 누락 후보로 사람 검토 필요",
       "item_ref": "coverage_items.cancer_diagnosis.diagnosis_scope"
+    },
+    {
+      "rule": "B5",
+      "severity": "AUTO-FAIL",
+      "axis": "precision",
+      "message": "evidence 문장은 실존하지만 그 문장이 말하는 수치와 선언한 old/new(10000000->10000000)가 일치하지 않음 — '문장이 진짜다'와 '주장한 값이 그 문장에 부합한다'는 서로 다른 검증이다",
+      "item_ref": "coverage_items.accident_disability"
+    },
+    {
+      "rule": "B2",
+      "severity": "HUMAN-QUEUE",
+      "axis": "precision",
+      "message": "GT 어디에도 매칭 안 됨(M1/M2 모두 실패, evidence는 원문에 존재) — GT 누락 후보로 사람 검토 필요",
+      "item_ref": "coverage_items.accident_disability"
     },
     {
       "rule": "B2",
@@ -40,14 +68,7 @@
       "severity": "AUTO-FAIL",
       "axis": "unknown",
       "message": "GT상 unknown 항목인데 AI 출력에 대응하는 unknown이 없음(Unknown Recall 위반)",
-      "item_ref": "exclusion_clause_cancer"
-    },
-    {
-      "rule": "D4",
-      "severity": "AUTO-FAIL",
-      "axis": "unknown",
-      "message": "GT상 unknown 항목인데 AI 출력에 대응하는 unknown이 없음(Unknown Recall 위반)",
-      "item_ref": "existing_contract_dissolution_impact"
+      "item_ref": "enrollment_date"
     }
   ]
 }

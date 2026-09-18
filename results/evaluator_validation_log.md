@@ -215,3 +215,48 @@ N=7 전체(TC-01,03,04,05,10,11,15)를 재실행해 B5가 기존 통과 케이�
 **남은 한계**: B5는 %/원/만원 수치만 다룬다. 기간(개월/회) 등 다른 단위나, 두 자리 이상의 단위
 혼용(예: "1,200만원 → 12,000,000원"을 서로 다른 표기로 같이 쓰는 경우)에 대한 강건성은 N=7
 범위 안에서만 확인했다 — 확장은 필요해질 때 하기로 한다(지금 무리하게 일반화하지 않음).
+
+## Phase 9 — D1/D2 항목 식별 버그 회귀 테스트 (2026-09-18, 2차 피드백)
+
+2차 피드백에서 지적: "같은 문서를 인용했다는 이유로 보험료와 해지환급률처럼 서로 다른
+항목이 잘못 중복 확정으로 처리되는 문제." Phase 8에서 "이번엔 안 건드림"으로 남겨뒀던
+`results/corrected/TC-05.json`의 D2 AUTO-FAIL이 바로 이 문제였다.
+
+**원인**: `match_key()`는 `(source_id, source_location)`만 보고 `item`을 완전히 무시한다.
+D1/D2는 conflict의 `sources[]` 키가 changes/unchanged_items의 매칭 키와 겹치는지만 확인했으므로,
+**서로 다른 항목이 같은 문서 위치를 근거로 인용하기만 해도** "같은 사실이 이미 확정/모순됐다"고
+오판정했다. `results/regression_fixtures/TC-05_corrupted_value.json`(Phase 8에서 만든 값 위조
+fixture)이 마침 이 패턴 그대로였다 — `premium`이 `product_summary_brochure`를 인용해 confirmed
+상태인데, 전혀 다른 항목인 `surrender_value_at_10y`의 진짜 `document_conflict`도 같은
+문서를 sources로 갖고 있어서, premium 확정 하나 때문에 surrender_value_at_10y 쪽 D2가
+잘못 AUTO-FAIL 처리되고 있었다.
+
+**수정**: `_same_item()`(기존 D4의 `normalize_item()` 재사용, 구분자 제거 후 부분 문자열 포함
+비교)을 추가해, D1/D2가 "source 키가 겹치는가"뿐 아니라 "conflict의 item과 changes/unchanged
+항목의 item이 실제로 같은가"까지 함께 확인하도록 `_same_item_confirmation_exists()`로
+바꿨다. GT 매칭(M1/M2)에는 item을 여전히 쓰지 않는다 — 이건 AI 자기 출력 내부의 일관성만
+보는 검사라, GT 대상 paraphrase 매칭 문제(여전히 미해결)와는 성격이 다르다.
+
+**회귀 검증 (fixture 3종 신규 작성, 수정 전/후 대조)**:
+
+| Fixture | 시나리오 | 수정 전 | 수정 후 |
+|---|---|---:|---:|
+| `D2_normal_no_conflict.json` | conflict 없이 항목 1개만 confirmed (정상 사례) | D1/D2 0건 (D3 1건은 무관한 별도 검사) | 동일 |
+| `D2_false_positive_different_items.json` | premium 확정 + surrender_value_at_10y conflict, 같은 문서 인용, **다른 항목** | **D2 AUTO-FAIL 1건 (오탐)** | **D1/D2 0건** |
+| `D2_true_positive_same_item.json` | surrender_value_at_10y를 changes와 conflicts 양쪽에 **같은 항목**으로 중복 기재(진짜 자기모순) | D2 AUTO-FAIL 1건 | D2 AUTO-FAIL 1건 (그대로 유지) |
+
+세 번째 fixture는 "이번 수정이 진짜 충돌까지 숨기지 않는가"를 확인하기 위한 대조군이다 — 항목이
+같으면 여전히 잡혀야 한다.
+
+**실제 케이스로 확인**: `results/structured/TC-05.json`(원본, 교정 전)을 재평가해보니 실제로
+`surrender_value_at_10y`가 `changes[]`와 `conflicts[]` 양쪽에 같은 항목명으로 들어있어 — 즉
+AI가 스스로 확정과 미확정을 동시에 주장한 진짜 자기모순 — D2가 여전히 정확히 AUTO-FAIL로
+잡는다. N=7 전체(TC-01,03,04,05,10,11,15) 재실행 결과 D1/D2 관련 findings는 이 TC-05
+건 외에는 발생하지 않았고, 다른 축(B4/D3/D4/H4 등)의 findings는 이번 수정 전후로 변화가
+없었다(`git stash`로 수정 전 코드를 임시 복원해 3개 fixture만 대조 실행, 이후 복원).
+
+**남은 한계**: `_same_item()`은 부분 문자열 포함 비교라 `coverage_amount_cancer`와
+`coverage_amount_cerebro_cardiac`처럼 접두어가 겹치는 서로 다른 항목을 여전히 같은 항목으로
+오판할 여지가 남아 있다 — N=7 실행에서는 이런 접두어 충돌이 실제로 발생하지 않아 확인하지
+못했다. Original/Corrected/Evaluation 파일을 실행 식별자로 완전히 분리하는 작업과, naive
+대비 held-out 3~5건 재검증은 이번 수정과 별개로 아직 하지 않았다.

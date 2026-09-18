@@ -1,0 +1,22 @@
+{
+  "_fixture_note": "정상 사례(control) — 항목 하나만 정상적으로 confirmed되고 conflict가 전혀 없는 경우. D1/D2 수정 전후로 결과가 달라지면 안 되는 sanity case.",
+  "changes": [
+    {
+      "item": "premium",
+      "old": 100000,
+      "new": 90000,
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "월 보험료 90,000원. 10년 시점 해지환급률 약 40%.",
+      "source_id": "product_B",
+      "source_location": "product_summary_brochure",
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [],
+  "unknowns": [],
+  "conflicts": [],
+  "additional_conditions": [],
+  "judgment": null,
+  "_case_id": "TC-05"
+}

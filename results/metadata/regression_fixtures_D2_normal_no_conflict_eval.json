@@ -1,0 +1,18 @@
+{
+  "case_id": "TC-05",
+  "recall_hits": 1,
+  "recall_total": 1,
+  "precision_violations": 0,
+  "precision_total": 1,
+  "evidence_ungrounded": 0,
+  "evidence_total": 1,
+  "findings": [
+    {
+      "rule": "D3",
+      "severity": "AUTO-FAIL",
+      "axis": "conflict",
+      "message": "GT상 conflict인데 AI가 감지하지 못하고 한쪽 값으로 임의 확정함(Conflict Accuracy 위반)",
+      "item_ref": "surrender_value"
+    }
+  ]
+}

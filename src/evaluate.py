@@ -447,17 +447,43 @@ def evaluate_case(case_id: str, ai_output_path: Optional[str] = None) -> Report:
     # --- D. Conflict ---
     change_match_keys_ai = {match_key(e) for e in ai.get("changes", [])}
     unchanged_match_keys_ai = {match_key(x) for x in ai.get("unchanged_items", [])}
+    change_entries_ai = ai.get("changes", [])
+    unchanged_entries_ai = ai.get("unchanged_items", [])
+
+    def _same_item(item_a: str, item_b: str) -> bool:
+        """D1/D2 버그 수정(2026-09-18, 2차 피드백에서 지적): match_key는 source_id+
+        source_location만 보고 item을 무시한다. 그래서 같은 문서 위치를 근거로 삼은 서로
+        다른 항목(예: premium과 surrender_value_at_10y가 둘 다 product_summary_brochure를
+        인용)이 있으면, 한쪽 항목의 확정(changes)이 다른 쪽 항목의 conflict를 "이미 해소됨"
+        으로 오판정하게 만들었다 — 실제로 results/regression_fixtures/TC-05_corrupted_value.json
+        에서 premium 확정이 surrender_value_at_10y의 진짜 document_conflict를 D2 AUTO-FAIL로
+        잘못 처리하는 것으로 재현됨. source_location 일치뿐 아니라 item 이름도 겹쳐야
+        "같은 사실"로 본다."""
+        a, b = normalize_item(item_a), normalize_item(item_b)
+        if not a or not b:
+            return False
+        return a in b or b in a
+
+    def _same_item_confirmation_exists(conflict_entry: dict, source_keys: set, confirmed_entries: list) -> bool:
+        conflict_item = conflict_entry.get("item", "")
+        return any(
+            match_key(e) in source_keys and _same_item(conflict_item, e.get("item", ""))
+            for e in confirmed_entries
+        )
+
     for e in ai.get("conflicts", []):
         # 버그 수정: conflict 객체는 최상위에 source_id/source_location이 없고 sources[] 하위에만
         # 있다. match_key(e)를 그대로 쓰면 (None, None)이 되어 항상 실패로 오판정됐다(TC-04에서
         # 실제로 발견). sources[] 각 항목의 키를 모아서 비교해야 한다.
         source_keys = {(s.get("source_id"), s.get("source_location")) for s in e.get("sources", [])}
-        if e.get("type") == "source_discrepancy" and not (source_keys & change_match_keys_ai):
+        if e.get("type") == "source_discrepancy" and not _same_item_confirmation_exists(e, source_keys, change_entries_ai):
             report.add(Finding("D1", "AUTO-FAIL", "conflict",
-                                "source_discrepancy인데 changes에 데이터 기반 확정값이 없음", e.get("item", "")))
-        if e.get("type") == "document_conflict" and (source_keys & (change_match_keys_ai | unchanged_match_keys_ai)):
+                                "source_discrepancy인데 changes에 같은 항목의 데이터 기반 확정값이 없음", e.get("item", "")))
+        if e.get("type") == "document_conflict" and _same_item_confirmation_exists(
+            e, source_keys, change_entries_ai + unchanged_entries_ai
+        ):
             report.add(Finding("D2", "AUTO-FAIL", "conflict",
-                                "document_conflict인데 changes/unchanged_items에 단일 확정값도 존재", e.get("item", "")))
+                                "document_conflict인데 changes/unchanged_items에 같은 항목의 단일 확정값도 존재", e.get("item", "")))
 
     # --- D3. Conflict Recall: GT가 표시한 충돌을 AI가 놓쳤는지 (TC-05 실행 중 발견, 신규 추가) ---
     gt_conflict_entries = gt.get("conflicts", []) + gt.get("source_discrepancies", [])

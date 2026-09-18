@@ -1,0 +1,35 @@
+{
+  "_fixture_note": "버그 재현 사례 — premium(보험료)과 surrender_value_at_10y(해지환급률)는 서로 다른 항목이지만, 같은 문서 위치(product_summary_brochure)를 근거로 인용한다. 수정 전 evaluate.py는 source_id+source_location만 보고 item을 무시했기 때문에, premium이 confirmed라는 이유만으로 surrender_value_at_10y의 진짜 document_conflict를 D2 AUTO-FAIL('이미 단일 확정값 존재')로 잘못 처리했다. 수정 후에는 item 이름이 겹치지 않으면 서로 다른 사실로 취급해 이 오탐이 사라져야 한다.",
+  "changes": [
+    {
+      "item": "premium",
+      "old": 100000,
+      "new": 90000,
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "월 보험료 90,000원. 10년 시점 해지환급률 약 40%.",
+      "source_id": "product_B",
+      "source_location": "product_summary_brochure",
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [],
+  "unknowns": [],
+  "conflicts": [
+    {
+      "item": "surrender_value_at_10y",
+      "type": "document_conflict",
+      "old": "45%",
+      "new": null,
+      "sources": [
+        { "source_id": "product_B", "source_location": "product_summary_brochure", "evidence": "10년 시점 해지환급률 약 40%." },
+        { "source_id": "product_B", "source_location": "product_terms_detail", "evidence": "10년 경과 시점 해지환급률은 35%로 한다." }
+      ],
+      "description": "신규 상품의 요약 안내서(40%)와 상세 약관(35%)이 10년 시점 해지환급률을 서로 다르게 제시함. 두 문서 모두 동일한 신뢰도의 공식 자료이므로 어느 한쪽 값도 단독으로 확정하지 않는다.",
+      "judgment": null
+    }
+  ],
+  "additional_conditions": [],
+  "judgment": null,
+  "_case_id": "TC-05"
+}

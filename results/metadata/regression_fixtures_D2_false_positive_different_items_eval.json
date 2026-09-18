@@ -1,0 +1,18 @@
+{
+  "case_id": "TC-05",
+  "recall_hits": 1,
+  "recall_total": 1,
+  "precision_violations": 0,
+  "precision_total": 1,
+  "evidence_ungrounded": 0,
+  "evidence_total": 1,
+  "findings": [
+    {
+      "rule": "D2",
+      "severity": "AUTO-FAIL",
+      "axis": "conflict",
+      "message": "document_conflict인데 changes/unchanged_items에 단일 확정값도 존재",
+      "item_ref": "surrender_value_at_10y"
+    }
+  ]
+}

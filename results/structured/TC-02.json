@@ -1,0 +1,102 @@
+{
+  "customer_needs": [
+    {
+      "need_id": "need_01",
+      "need_summary": "현재 암 보험의 보장 수준이 충분한지 확인하고 싶다.",
+      "source_message_ids": [
+        "msg_02_01",
+        "msg_02_03"
+      ],
+      "evidence": [
+        "요즘 암 보험 리모델링한다는 얘기 많이 들어서요. 저도 지금 거 괜찮은지 한번 봐주실 수 있어요?",
+        "2,000만원이면 요즘 치료비 생각하면 좀 부족하다고 들었는데."
+      ]
+    },
+    {
+      "need_id": "need_02",
+      "need_summary": "보험료 인상에 대한 우려가 있다.",
+      "source_message_ids": [
+        "msg_02_05",
+        "msg_02_06"
+      ],
+      "evidence": [
+        "음, 그러면 전체적으로 저한테 좋은 거예요?",
+        "음... 보장이 두 배 되는 거니까 전체적으로 보면 좋아지는 셈이죠. 다만 매달 나가는 돈이 3만원 늘어나긴 해요."
+      ]
+    },
+    {
+      "need_id": "need_03",
+      "need_summary": "기존 계약과의 조건이 동일한지 확인하고 싶다.",
+      "source_message_ids": [
+        "msg_02_07"
+      ],
+      "evidence": [
+        "흠, 다른 조건들은 그대로인 거죠?"
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "item": "premium",
+      "old": 90000,
+      "new": 120000,
+      "delta_type": "increase",
+      "status": "confirmed",
+      "evidence": "월 보험료 120,000원",
+      "source_id": "product_B",
+      "source_location": "product_brochure_p2",
+      "linked_need_id": "need_02",
+      "judgment": null
+    },
+    {
+      "item": "coverage_items.cancer_diagnosis",
+      "old": 20000000,
+      "new": 40000000,
+      "delta_type": "increase",
+      "status": "confirmed",
+      "evidence": "암 진단비 4,000만원 (최초 1회 지급).",
+      "source_id": "product_B",
+      "source_location": "coverage_list",
+      "linked_need_id": "need_01",
+      "judgment": null
+    },
+    {
+      "item": "renewal_period",
+      "old": "5년",
+      "new": "5년",
+      "delta_type": "unchanged",
+      "status": "confirmed",
+      "evidence": "갱신주기 5년.",
+      "source_id": "product_B",
+      "source_location": "renewal_clause",
+      "linked_need_id": "need_03",
+      "judgment": null
+    },
+    {
+      "item": "surrender_value_at_5y",
+      "old": "50%",
+      "new": "50%",
+      "delta_type": "unchanged",
+      "status": "confirmed",
+      "evidence": "5년납 기준 해지환급률 50%.",
+      "source_id": "product_B",
+      "source_location": "surrender_value_table",
+      "linked_need_id": "need_03",
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [],
+  "unknowns": [],
+  "conflicts": [],
+  "additional_conditions": [],
+  "judgment": null,
+  "_usage": {
+    "model": "gpt-4o-mini",
+    "prompt_tokens": 11053,
+    "completion_tokens": 969,
+    "total_tokens": 12022,
+    "elapsed_seconds": 12.95,
+    "attempts": 2
+  },
+  "_case_id": "TC-02"
+}

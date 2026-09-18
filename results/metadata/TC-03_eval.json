@@ -3,9 +3,9 @@
   "recall_hits": 0,
   "recall_total": 1,
   "precision_violations": 0,
-  "precision_total": 3,
+  "precision_total": 2,
   "evidence_ungrounded": 0,
-  "evidence_total": 5,
+  "evidence_total": 4,
   "findings": [
     {
       "rule": "B1-wrong-source",
@@ -26,14 +26,7 @@
       "severity": "HUMAN-QUEUE",
       "axis": "precision",
       "message": "GT 어디에도 매칭 안 됨(M1/M2 모두 실패, evidence는 원문에 존재) — GT 누락 후보로 사람 검토 필요",
-      "item_ref": "exclusion_clause.suicide"
-    },
-    {
-      "rule": "B2",
-      "severity": "HUMAN-QUEUE",
-      "axis": "precision",
-      "message": "GT 어디에도 매칭 안 됨(M1/M2 모두 실패, evidence는 원문에 존재) — GT 누락 후보로 사람 검토 필요",
-      "item_ref": "exclusion_clause.specific_disease"
+      "item_ref": "exclusion_clause"
     }
   ]
 }

@@ -1,0 +1,93 @@
+{
+  "customer_needs": [
+    {
+      "need_id": "need_01",
+      "need_summary": "상품 전환에 대한 관심",
+      "source_message_ids": [
+        "msg_08_01",
+        "msg_08_02",
+        "msg_08_03"
+      ],
+      "evidence": [
+        "요즘 상품들 많이 나온다는데, 저도 갈아타는 게 나을까요?",
+        "네 고객님, 마침 좋은 상품이 있어서 안내드리려고 했어요. 지금보다 훨씬 좋은 조건이에요."
+      ]
+    },
+    {
+      "need_id": "need_02",
+      "need_summary": "보장 내용과 조건에 대한 궁금증",
+      "source_message_ids": [
+        "msg_08_05",
+        "msg_08_06"
+      ],
+      "evidence": [
+        "그럼 보장이나 다른 조건들은 그대로인 거예요, 아니면 더 좋아지는 거예요?",
+        "요즘 트렌드에 맞게 새로 설계된 상품이라 전체적으로 더 실속 있어졌다고 보시면 돼요."
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "item": "premium",
+      "old": 100000,
+      "new": 100000,
+      "delta_type": "unchanged",
+      "status": "confirmed",
+      "evidence": "월 보험료 100,000원.",
+      "source_id": "product_B",
+      "source_location": "product_brochure_p2",
+      "linked_need_id": "need_01",
+      "judgment": null
+    },
+    {
+      "item": "coverage_items.cancer_diagnosis",
+      "old": 30000000,
+      "new": 20000000,
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "암 진단비 2,000만원 (최초 1회 지급).",
+      "source_id": "product_B",
+      "source_location": "coverage_list",
+      "linked_need_id": "need_02",
+      "judgment": null
+    },
+    {
+      "item": "renewal_period",
+      "old": "10년",
+      "new": "5년",
+      "delta_type": "shortened",
+      "status": "confirmed",
+      "evidence": "갱신주기 5년.",
+      "source_id": "product_B",
+      "source_location": "renewal_clause",
+      "linked_need_id": "need_02",
+      "judgment": null
+    },
+    {
+      "item": "surrender_value_at_10y",
+      "old": "60%",
+      "new": "30%",
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "10년납 기준 해지환급률 30%.",
+      "source_id": "product_B",
+      "source_location": "surrender_value_table",
+      "linked_need_id": "need_02",
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [],
+  "unknowns": [],
+  "conflicts": [],
+  "additional_conditions": [],
+  "judgment": null,
+  "_usage": {
+    "model": "gpt-4o-mini",
+    "prompt_tokens": 10782,
+    "completion_tokens": 931,
+    "total_tokens": 11713,
+    "elapsed_seconds": 8.52,
+    "attempts": 2
+  },
+  "_case_id": "TC-08"
+}

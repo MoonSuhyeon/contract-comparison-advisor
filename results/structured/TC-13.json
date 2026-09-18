@@ -1,0 +1,87 @@
+{
+  "customer_needs": [
+    {
+      "need_id": "need_01",
+      "need_summary": "기존 계약의 정확한 보장 내용 확인",
+      "source_message_ids": [
+        "msg_13_01",
+        "msg_13_04",
+        "msg_13_06"
+      ],
+      "evidence": [
+        "제가 원래 담당해주시던 분이 그만두셨다고 들었는데, 지금 이 상품 특약이 정확히 어떻게 되어 있는지 아시나요?",
+        "그래요? 그럼 지금 정확히 뭘 보장받고 있는지도 모른다는 거예요?",
+        "음... 그것보다 제 기존 계약부터 정확히 확인해주셨으면 좋겠는데요. 뭐가 바뀌는지도 모르는데 새 상품 얘기부터 듣는 게 좀 그래요."
+      ]
+    }
+  ],
+  "changes": [
+    {
+      "item": "premium",
+      "old": 110000,
+      "new": 95000,
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "월 보험료 95,000원.",
+      "source_id": "product_B",
+      "source_location": "product_brochure_p1",
+      "linked_need_id": "need_01",
+      "note": null,
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [
+    {
+      "item": "coverage_items",
+      "old": null,
+      "new": null,
+      "delta_type": "unchanged",
+      "status": "confirmed",
+      "evidence": "이 계약은 원 담당 설계사의 퇴사로 인계된 '고아계약'이다. 시스템에는 보험료(청구 정보)만 항상 정상적으로 조회되고, 특약 구성·갱신조건·해지환급률 등 세부 계약 내용은 요약 처리되어 있지 않아 이번 상담 시점에는 확인할 수 없다.",
+      "source_id": "contract_A",
+      "source_location": "note",
+      "linked_need_id": null,
+      "note": null,
+      "judgment": null
+    },
+    {
+      "item": "renewal_period",
+      "old": null,
+      "new": null,
+      "delta_type": "unchanged",
+      "status": "confirmed",
+      "evidence": "이 계약은 원 담당 설계사의 퇴사로 인계된 '고아계약'이다. 시스템에는 보험료(청구 정보)만 항상 정상적으로 조회되고, 특약 구성·갱신조건·해지환급률 등 세부 계약 내용은 요약 처리되어 있지 않아 이번 상담 시점에는 확인할 수 없다.",
+      "source_id": "contract_A",
+      "source_location": "note",
+      "linked_need_id": null,
+      "note": null,
+      "judgment": null
+    },
+    {
+      "item": "surrender_value",
+      "old": null,
+      "new": null,
+      "delta_type": "unchanged",
+      "status": "confirmed",
+      "evidence": "이 계약은 원 담당 설계사의 퇴사로 인계된 '고아계약'이다. 시스템에는 보험료(청구 정보)만 항상 정상적으로 조회되고, 특약 구성·갱신조건·해지환급률 등 세부 계약 내용은 요약 처리되어 있지 않아 이번 상담 시점에는 확인할 수 없다.",
+      "source_id": "contract_A",
+      "source_location": "note",
+      "linked_need_id": null,
+      "note": null,
+      "judgment": null
+    }
+  ],
+  "unknowns": [],
+  "conflicts": [],
+  "additional_conditions": [],
+  "judgment": null,
+  "_usage": {
+    "model": "gpt-4o-mini",
+    "prompt_tokens": 5336,
+    "completion_tokens": 640,
+    "total_tokens": 5976,
+    "elapsed_seconds": 6.39,
+    "attempts": 1
+  },
+  "_case_id": "TC-13"
+}

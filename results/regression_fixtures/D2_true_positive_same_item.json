@@ -1,0 +1,35 @@
+{
+  "_fixture_note": "진짜 충돌 사례 — surrender_value_at_10y를 changes에서 confirmed로 확정하면서, 동시에 conflicts에도 같은 항목(surrender_value_at_10y)을 document_conflict로 올린 자기모순. item 이름이 같으므로 수정 전/후 모두 D2 AUTO-FAIL이 그대로 유지되어야 한다 — 이번 수정이 진짜 충돌까지 숨기지 않는다는 것을 보여주기 위한 대조군.",
+  "changes": [
+    {
+      "item": "surrender_value_at_10y",
+      "old": "45%",
+      "new": "40%",
+      "delta_type": "decrease",
+      "status": "confirmed",
+      "evidence": "10년 시점 해지환급률 약 40%.",
+      "source_id": "product_B",
+      "source_location": "product_summary_brochure",
+      "judgment": null
+    }
+  ],
+  "unchanged_items": [],
+  "unknowns": [],
+  "conflicts": [
+    {
+      "item": "surrender_value_at_10y",
+      "type": "document_conflict",
+      "old": "45%",
+      "new": null,
+      "sources": [
+        { "source_id": "product_B", "source_location": "product_summary_brochure", "evidence": "10년 시점 해지환급률 약 40%." },
+        { "source_id": "product_B", "source_location": "product_terms_detail", "evidence": "10년 경과 시점 해지환급률은 35%로 한다." }
+      ],
+      "description": "신규 상품의 요약 안내서(40%)와 상세 약관(35%)이 10년 시점 해지환급률을 서로 다르게 제시함.",
+      "judgment": null
+    }
+  ],
+  "additional_conditions": [],
+  "judgment": null,
+  "_case_id": "TC-05"
+}

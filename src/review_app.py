@@ -16,6 +16,7 @@ Ground Truth는 이 앱에서 절대 읽지 않는다(실험 중 정답 노출 �
 from __future__ import annotations
 
 import json
+import sys
 import time
 import uuid
 from pathlib import Path
@@ -27,6 +28,13 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 STRUCTURED_DIR = ROOT / "results" / "structured"
 LOG_DIR = ROOT / "results" / "work_effect" / "app_logs"
+
+# conflict_detector는 GT/LLM을 전혀 쓰지 않고 원문 숫자만 비교해서 확인 신호를 만든다
+# (2차 피드백: "정답을 참조하지 않고 확인 필요 신호를 만드는 방법을 검증"). 지금까지는
+# 검증 스크립트로만 따로 돌렸고 이 Review 화면과 연결돼 있지 않았다 — 화면에 뜨는 Conflict는
+# 전부 AI(LLM) 스스로의 신고였다. 2026-09-18에 실제로 이 화면에 연결했다.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from conflict_detector import find_document_conflicts  # noqa: E402
 
 CASES = ["TC-01", "TC-03", "TC-04", "TC-05", "TC-10", "TC-11", "TC-15"]  # 실행 완료된 7개 전부
 
