@@ -348,6 +348,16 @@ div[data-testid="stMetric"] {
     border-radius: 10px;
     padding: 10px 14px;
 }
+section[data-testid="stSidebar"] [data-testid="stCaptionContainer"],
+section[data-testid="stSidebar"] small {
+    line-height: 1.5;
+    margin-bottom: 2px;
+    display: block;
+}
+section[data-testid="stSidebar"] div[data-testid="stAlert"] {
+    line-height: 1.6;
+    font-size: 13.5px;
+}
 </style>
 """
 
@@ -361,18 +371,13 @@ def main() -> None:
 
     with st.sidebar:
         st.header("설정")
-        case_id = st.selectbox("케이스", CASES)
-        with st.expander("왜 이 7개 케이스인가?"):
-            st.markdown(
-                "전체 15개 중 6개 평가축(Recall·Precision·Evidence·Unknown·Conflict 등)을 "
-                "모두 커버하면서 환각 방지 케이스(TC-10)까지 포함되도록 고른 7개입니다. "
-                "나머지 8개는 설계·GT만 완료된 상태입니다. 근거: `03_평가설계.md` §3."
-            )
+        st.markdown("**케이스**")
+        st.caption("테스트 케이스 15개 중 실험 가능하도록 준비를 마친 7개만 여기서 고를 수 있어요.")
+        case_id = st.selectbox("케이스", CASES, label_visibility="collapsed")
         condition = st.radio("조건", ["A · 원문만 보고 직접 작성", "B · AI 초안 검토"])
         condition_code = "A" if condition.startswith("A") else "B"
         if condition_code == "A":
-            st.info("AI 결과 없이 원문만 보고 비교표를 처음부터 작성합니다. 변경사항이 상담 "
-                    "내용의 고객 요구사항과 관련된 경우, 해당 맥락도 '근거' 칸에 함께 적어주세요.")
+            st.info("AI 결과 없이 원문만 보고 비교표를 처음부터 작성합니다.")
         else:
             st.info("AI가 만든 초안을 확인·수정해서 최종 결과를 만듭니다.")
 
