@@ -362,6 +362,12 @@ def main() -> None:
     with st.sidebar:
         st.header("설정")
         case_id = st.selectbox("케이스", CASES)
+        with st.expander("왜 이 7개 케이스인가?"):
+            st.markdown(
+                "전체 15개 중 6개 평가축(Recall·Precision·Evidence·Unknown·Conflict 등)을 "
+                "모두 커버하면서 환각 방지 케이스(TC-10)까지 포함되도록 고른 7개입니다. "
+                "나머지 8개는 설계·GT만 완료된 상태입니다. 근거: `03_평가설계.md` §3."
+            )
         condition = st.radio("조건", ["A · 원문만 보고 직접 작성", "B · AI 초안 검토"])
         condition_code = "A" if condition.startswith("A") else "B"
         if condition_code == "A":
