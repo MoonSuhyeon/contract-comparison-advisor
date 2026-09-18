@@ -135,10 +135,39 @@ B2에서 HUMAN-QUEUE로 올라간 항목을 사람이 검토한 결과:
 
 ---
 
+## H. Need Link Integrity — 고객 니즈 연결 검사 (`linked_need_id`, TC-11 실행 중 발견·추가)
+
+스키마·프롬프트에는 처음부터 `linked_need_id`(B항목의 변화를 `customer_needs[]`와 연결하는
+필드)가 있었지만, 이 필드가 채워졌는지 확인하는 평가 규칙이 하나도 없었다 — AI가 이 링크를
+빠뜨려도 평가기가 절대 잡아내지 못하는 사각지대였다. GT는 `changes[]`/`unchanged_items[]`
+항목에 직접 `customer_need`/`need_source_id`/`need_evidence`를 붙이는 방식(사람이 보기 편한
+표현)을 쓰고, AI는 최상위 `customer_needs[]` + `linked_need_id` 참조 방식(스키마용 정규화
+표현)을 쓴다. **GT와 AI의 표현 방식을 억지로 통일하지 않고, 이 규칙이 평가 시점에 서로
+연결한다.**
+
+**H1. 연결 누락 (AUTO-FAIL)**
+GT 항목에 `customer_need`가 있는데(=B항목) 매칭된 AI 항목의 `linked_need_id`가 없거나 `null`이면 → AUTO-FAIL (Recall 위반 — 변화 자체는 찾았어도 왜 이 고객에게 중요한지는 놓침).
+
+**H2. 참조 무결성 (AUTO-FAIL)**
+`linked_need_id`가 있는데 그 값이 AI 자신의 `customer_needs[].need_id` 목록 어디에도 없으면 → AUTO-FAIL (존재하지 않는 need를 참조하는 구조적 오류).
+
+**H3. 니즈 출처 불일치 (HUMAN-QUEUE)**
+`linked_need_id`는 유효하게 존재하지만, 그 need의 `source_message_ids`가 GT의 `need_source_id`와 겹치지 않으면 → HUMAN-QUEUE. 표현만 다른 같은 니즈(paraphrase)인지, 실제로 다른 걸 잘못 연결한 것인지는 자동으로 구분할 수 없어 사람이 확인한다.
+
+**H4. 근거 없는 임의 연결 (HUMAN-QUEUE)**
+GT 항목에 `customer_need`가 없는데(=A항목) AI가 `linked_need_id`를 채워 넣었으면 → HUMAN-QUEUE. GT가 놓친 진짜 연결일 수도 있고, AI가 근거 없이 과잉연결한 것(새로운 형태의 환각)일 수도 있어 자동으로 확정하지 않는다.
+
+이 4개 규칙은 Recall/Precision과 별도의 7번째 평가축이 아니라, 기존 Recall/Precision 축
+아래의 서브체크로 취급한다(`03_평가설계.md`가 이미 6축으로 확정해뒀으므로 축 자체를 새로
+만들지 않는다).
+
+---
+
 ## G. 검사 실행 순서 (권장)
 
 1. A(구조) → 여기서 실패하면 이후 검사를 생략해도 되는 항목(예: 스키마 자체가 깨진 item)은 생략.
 2. B1(원문 대조) → C(Unknown/Confirmed_absent) → D(Conflict) → B3/B4(임계값) 순으로 각 item을 채점.
 3. B2(GT 미등록 신규 item)는 A~D를 통과한 "정상적으로 구조화된" item 중, GT 매칭이 안 되는 것만 별도로 골라 처리.
-4. E2(판단어 스캔)는 항목 검사와 독립적으로 전체 텍스트 필드에 대해 한 번 수행.
-5. HUMAN-QUEUE에 쌓인 항목은 채점 리포트에 "미확정"으로 별도 표시하고, 자동 산출 점수(Recall/Precision 등)에는 사람 확인 전까지 포함하지 않는다.
+4. H(Need Link Integrity)는 M1으로 매칭이 확정된 item에 대해서만 수행한다 — 매칭 자체가 안 된 항목(B2/M2로 빠진 것)은 GT의 어느 item과 연결됐는지부터 불확실하므로 니즈 연결 검사 대상이 아니다.
+5. E2(판단어 스캔)는 항목 검사와 독립적으로 전체 텍스트 필드에 대해 한 번 수행.
+6. HUMAN-QUEUE에 쌓인 항목은 채점 리포트에 "미확정"으로 별도 표시하고, 자동 산출 점수(Recall/Precision 등)에는 사람 확인 전까지 포함하지 않는다.

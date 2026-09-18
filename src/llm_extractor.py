@@ -105,6 +105,10 @@ def run_case(case_id: str, max_retries: int = 2) -> dict:
             messages=messages,
             tools=[tool],
             tool_choice={"type": "function", "function": {"name": schema_doc["name"]}},
+            temperature=0,  # 재현성 개선(완전한 결정성은 보장 안 됨) — 이게 없어서
+            # 같은 케이스를 재실행할 때마다 conflicts/unknowns 개수 등이 달라져,
+            # 결과 변경이 코드 수정 때문인지 단순 샘플링 변동인지 구분이 안 되는
+            # 문제가 있었다(2026-09-17, linked_need_id 작업 중 발견).
         )
         if response.usage:
             total_prompt_tokens += response.usage.prompt_tokens

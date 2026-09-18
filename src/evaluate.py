@@ -241,6 +241,46 @@ def within_threshold(old, new, item_hint: str) -> bool:
     return False  # 판단 불가하면 '유의미하다'고 보수적으로 처리
 
 
+# ---------------------------------------------------------------- H. Need Link Integrity
+
+def check_need_link(ai_entry: dict, gt_entry: dict, ai: dict, report: Report, item_hint: str) -> None:
+    """GT는 changes[]/unchanged_items[] 항목에 직접 customer_need/need_source_id/need_evidence를
+    붙이는 방식(사람이 보기 편한 표현)을, AI는 최상위 customer_needs[] + linked_need_id 참조
+    방식(스키마용 정규화 표현)을 쓴다 — 두 표현이 다른 게 정상이며, 이 함수가 평가 시점에
+    서로 연결해서 확인한다. TC-11에서 이 연결이 스키마·프롬프트에는 있었지만 실제로는
+    한 번도 검증되지 않고 있었던 걸 발견하고 추가했다(2026-09-17)."""
+    gt_need = gt_entry.get("customer_need")
+    linked_need_id = ai_entry.get("linked_need_id")
+
+    if gt_need:  # GT가 B항목(고객 니즈와 연결되어야 하는 항목)
+        if not linked_need_id:
+            report.add(Finding("H1", "AUTO-FAIL", "recall",
+                                f"GT가 고객 니즈('{gt_need}')와 연결된 B항목인데 linked_need_id가 비어 있음 — "
+                                "변화 자체는 찾았어도 왜 이 고객에게 중요한지는 놓침",
+                                item_hint))
+            return
+        need_entry = next((n for n in ai.get("customer_needs", []) if n.get("need_id") == linked_need_id), None)
+        if need_entry is None:
+            report.add(Finding("H2", "AUTO-FAIL", "recall",
+                                f"linked_need_id('{linked_need_id}')가 AI 자신의 customer_needs[]에 존재하지 않음 — 참조 무결성 위반",
+                                item_hint))
+            return
+        gt_source = gt_entry.get("need_source_id")
+        ai_sources = need_entry.get("source_message_ids", [])
+        if gt_source and gt_source not in ai_sources:
+            report.add(Finding("H3", "HUMAN-QUEUE", "recall",
+                                f"linked_need_id는 있지만 그 need의 출처{ai_sources}가 GT가 말한 출처"
+                                f"('{gt_source}')와 다름 — 표현만 다른 같은 니즈(paraphrase)인지 실제로 "
+                                "다른 걸 잘못 연결한 것인지 사람 확인 필요",
+                                item_hint))
+    else:  # GT는 A항목(고객 니즈 연결을 요구하지 않음)
+        if linked_need_id:
+            report.add(Finding("H4", "HUMAN-QUEUE", "precision",
+                                f"GT에는 없는 고객 니즈 연결을 AI가 임의로 추가함(linked_need_id='{linked_need_id}') — "
+                                "GT가 놓친 진짜 연결일 수도, AI의 근거 없는 과잉연결(새로운 형태의 환각)일 수도 있어 사람 확인 필요",
+                                item_hint))
+
+
 # ---------------------------------------------------------------- A. 구조적 검사
 
 def check_structural(ai: dict, report: Report):
@@ -342,6 +382,7 @@ def evaluate_case(case_id: str, ai_output_path: Optional[str] = None) -> Report:
 
             origin = gt_origin[id(match)]
             item_hint = e.get("item", "")
+            check_need_link(e, match, ai, report, item_hint)
 
             if bucket_name == "changes":
                 if origin == "changes":

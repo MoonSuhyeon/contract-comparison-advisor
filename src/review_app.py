@@ -124,6 +124,7 @@ def ai_output_to_comparison_rows(ai: dict) -> list[dict]:
             "변화방향": c.get("delta_type", ""), "근거": c.get("evidence") or "",
             "상태": "AI 제안",
             "_source_id": c.get("source_id", ""), "_source_location": c.get("source_location", ""),
+            "_linked_need_id": c.get("linked_need_id"),
         })
     for i, u in enumerate(ai.get("unchanged_items", [])):
         rows.append({
@@ -132,8 +133,13 @@ def ai_output_to_comparison_rows(ai: dict) -> list[dict]:
             "변화방향": u.get("delta_type", "unchanged"), "근거": u.get("evidence") or "",
             "상태": "AI 제안",
             "_source_id": u.get("source_id", ""), "_source_location": u.get("source_location", ""),
+            "_linked_need_id": u.get("linked_need_id"),
         })
     return rows
+
+
+def need_summary_lookup(ai: dict) -> dict:
+    return {n.get("need_id"): n.get("need_summary", "") for n in ai.get("customer_needs", [])}
 
 
 def empty_comparison_rows(n: int = 4) -> list[dict]:
@@ -278,14 +284,21 @@ def render_kpi_cards(comparison_count: int, conflict_count: int, unknown_count: 
     st.markdown(f'<div style="display:flex;gap:14px;margin-bottom:22px;">{cards}</div>', unsafe_allow_html=True)
 
 
-def render_comparison_summary(rows: list[dict], case_data: dict) -> None:
+def render_comparison_summary(rows: list[dict], case_data: dict, need_lookup: dict | None = None) -> None:
+    need_lookup = need_lookup or {}
     for row in rows:
         item = row["항목"]
         old_v = format_value(item, row["기존값"])
         new_v = format_value(item, row["신규값"])
+        need_id = row.get("_linked_need_id")
+        need_summary = need_lookup.get(need_id) if need_id else None
+        # 고객 니즈가 연결된 항목이 있을 때만 카드 아래쪽 모서리를 각지게 둬서
+        # 니즈 줄과 한 덩어리처럼 보이게 한다(없으면 카드 자체를 완전히 둥글게).
+        card_radius = "10px 10px 0 0" if need_summary else "10px"
+        card_border = "border-bottom:none;" if need_summary else ""
         card_html = (
-            '<div style="display:flex;align-items:center;gap:16px;background:#fff;'
-            'border:1px solid #e2e8f0;border-radius:10px 10px 0 0;border-bottom:none;'
+            f'<div style="display:flex;align-items:center;gap:16px;background:#fff;'
+            f'border:1px solid #e2e8f0;border-radius:{card_radius};{card_border}'
             'padding:14px 18px;box-shadow:0 1px 2px rgba(0,0,0,0.04);">'
             f'<div style="flex:2;font-weight:600;color:#0f172a;">{label_for_item(item)}</div>'
             f'<div style="flex:3;color:#334155;font-size:14.5px;">{old_v} &rarr; {new_v}</div>'
@@ -294,6 +307,14 @@ def render_comparison_summary(rows: list[dict], case_data: dict) -> None:
             '</div>'
         )
         st.markdown(card_html, unsafe_allow_html=True)
+        if need_summary:
+            st.markdown(
+                '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-top:none;'
+                'border-radius:0 0 10px 10px;padding:8px 18px 10px 18px;font-size:13px;color:#475569;">'
+                f'<b style="color:{NEUTRAL_DARK};">고객 니즈</b> — {need_summary}'
+                '</div>',
+                unsafe_allow_html=True,
+            )
         source_id = row.get("_source_id", "")
         source_location = row.get("_source_location", "")
         with st.expander(f"근거: {row['근거'] or '(없음)'}"):
@@ -344,7 +365,8 @@ def main() -> None:
         condition = st.radio("조건", ["A · 원문만 보고 직접 작성", "B · AI 초안 검토"])
         condition_code = "A" if condition.startswith("A") else "B"
         if condition_code == "A":
-            st.info("AI 결과 없이 원문만 보고 비교표를 처음부터 작성합니다.")
+            st.info("AI 결과 없이 원문만 보고 비교표를 처음부터 작성합니다. 변경사항이 상담 "
+                    "내용의 고객 요구사항과 관련된 경우, 해당 맥락도 '근거' 칸에 함께 적어주세요.")
         else:
             st.info("AI가 만든 초안을 확인·수정해서 최종 결과를 만듭니다.")
 
@@ -408,7 +430,9 @@ def main() -> None:
         if condition_code == "B" and ai_output:
             st.caption("AI 제안 요약(읽기 전용, 항목별 \"근거\"를 펼치면 원문을 바로 확인합니다) "
                        "— 실제 수정은 아래 \"표 직접 수정\"에서 합니다.")
-            render_comparison_summary(ai_output_to_comparison_rows(ai_output), case_data)
+            render_comparison_summary(
+                ai_output_to_comparison_rows(ai_output), case_data, need_summary_lookup(ai_output)
+            )
             with st.expander("표 직접 수정", expanded=False):
                 edited = st.data_editor(
                     st.session_state[table_key],
