@@ -30,9 +30,9 @@ STRUCTURED_DIR = ROOT / "results" / "structured"
 LOG_DIR = ROOT / "results" / "work_effect" / "app_logs"
 
 # conflict_detector는 GT/LLM을 전혀 쓰지 않고 원문 숫자만 비교해서 확인 신호를 만든다
-# (2차 피드백: "정답을 참조하지 않고 확인 필요 신호를 만드는 방법을 검증"). 지금까지는
-# 검증 스크립트로만 따로 돌렸고 이 Review 화면과 연결돼 있지 않았다 — 화면에 뜨는 Conflict는
-# 전부 AI(LLM) 스스로의 신고였다. 2026-09-18에 실제로 이 화면에 연결했다.
+# (2차 피드백: "정답을 참조하지 않고 확인 필요 신호를 만드는 방법을 검증"). 아래
+# detector_conflicts_to_review_items()가 이 함수의 결과를 화면에 올리며, ai_output_to_conflicts
+# (AI 자체 신고)와 함께 conflicts_key에 합쳐지되 "출처" 필드로 화면에서 구분 표시된다.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from conflict_detector import find_document_conflicts  # noqa: E402
 
@@ -186,7 +186,26 @@ def ai_output_to_conflicts(ai: dict) -> list[dict]:
         desc = " / ".join(f"[{s.get('source_id', '')}] {s.get('evidence', '')}" for s in sources)
         items.append({
             "_id": f"conflict-{i}", "항목": cf.get("item", cf.get("description", "")),
+            "설명": desc, "checked": False, "note": "", "출처": "AI 자체 신고 (LLM)",
+        })
+    return items
+
+
+def detector_conflicts_to_review_items(case_data: dict) -> list[dict]:
+    """conflict_detector.find_document_conflicts()의 결과를 Review 화면 스키마로 바꾼다.
+
+    ai_output_to_conflicts와 달리 ai_output/GT를 전혀 쓰지 않는다 — case_data(원문)만
+    입력으로 받는다. "출처"에 정체를 명시해 AI 자체 신고와 화면에서 구분되게 한다.
+    """
+    items = []
+    for i, cf in enumerate(find_document_conflicts(case_data)):
+        sources = cf.get("sources", [])
+        desc = " / ".join(f"[{s.get('source_id', '')}] {s.get('evidence', '')}" for s in sources)
+        items.append({
+            "_id": f"detector-conflict-{i}",
+            "항목": f"수치 불일치 후보 (겹침도 {cf.get('context_overlap', 0)})",
             "설명": desc, "checked": False, "note": "",
+            "출처": "독립 탐지 (conflict_detector.py — GT·LLM 미사용)",
         })
     return items
 
@@ -426,7 +445,12 @@ def main() -> None:
         st.session_state[table_key] = pd.DataFrame(rows, columns=TABLE_COLUMNS + ["_source_id", "_source_location"])
         st.session_state[session_key(case_id, condition_code, "original")] = st.session_state[table_key].copy()
         st.session_state[unknowns_key] = ai_output_to_unknowns(ai_output) if (condition_code == "B" and ai_output) else []
-        st.session_state[conflicts_key] = ai_output_to_conflicts(ai_output) if (condition_code == "B" and ai_output) else []
+        # Conflict 목록은 두 출처를 합친다: (1) AI(LLM)가 스스로 신고한 것(조건 B에서만) +
+        # (2) conflict_detector.py가 GT·LLM 없이 원문만 비교해 독립적으로 찾은 것(조건 무관).
+        # 화면에는 각 항목의 "출처"가 그대로 표시되어 둘이 섞여 보이지 않는다.
+        ai_conflicts = ai_output_to_conflicts(ai_output) if (condition_code == "B" and ai_output) else []
+        detector_conflicts = detector_conflicts_to_review_items(case_data)
+        st.session_state[conflicts_key] = ai_conflicts + detector_conflicts
 
     render_kpi_cards(
         len(st.session_state[table_key]),
